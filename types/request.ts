@@ -30,6 +30,7 @@ export const processIssue = async (
       console.log("Approved comment found: " + comment.body);
     else continue;
     let lines = comment.body?.split("\n").filter((l) => l.length > 0);
+    // TODO: better parsing
     for (let i = 0; i < lines.length; i++) {
       {
         if (lines[i].includes("### Address")) {
