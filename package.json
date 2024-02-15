@@ -3,10 +3,13 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "build": "tsc --project ."
+    "build": "tsc --project .",
+    "start": "node out/App.js"
   },
   "dependencies": {
+    "@octokit/plugin-rest-endpoint-methods": "^10.2.0",
     "@types/node": "^20.11.17",
-    "dotenv": "^16.4.3"
+    "dotenv": "^16.4.3",
+    "octokit": "^3.1.2"
   }
 }
