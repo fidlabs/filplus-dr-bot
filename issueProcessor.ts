@@ -69,10 +69,12 @@ const parseDataCapRequest = (
     if (key.type == "heading") {
       let value: Blockquote = children[i * 2 + 1] as any;
       let k: Heading = key;
-      map.set(
-        (k.children[0] as Text).value,
-        ((value.children[0] as Paragraph).children[0] as Text).value
-      );
+      let paragraph = value.children[0] as Paragraph;
+      if (paragraph.type == "paragraph")
+        map.set(
+          (k.children[0] as Text).value,
+          (paragraph.children[0] as Text).value
+        );
     }
   }
 
