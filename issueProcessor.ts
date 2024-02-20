@@ -18,13 +18,13 @@ export const processIssue = async (
   issue: Issue
 ): Promise<DataCapRequest | null> => {
   try {
-    let comments = await octokit.rest.issues.listComments({
-      owner: "filecoin-project",
-      repo: "filecoin-plus-large-datasets",
+    let comments = await octokit.paginate(octokit.rest.issues.listComments, {
+      owner: process.env.OWNER as string,
+      repo: process.env.REPO as string,
       issue_number: issue.number,
-      per_page: 100,
+      per_page: 35,
     });
-    for (let comment of comments.data) {
+    for (let comment of comments) {
       let md = remark.parse(comment.body);
 
       if (md.children[0].type == "heading") {
@@ -32,6 +32,7 @@ export const processIssue = async (
         if (heading.depth == 2) {
           let [, ...props] = md.children;
           let dca = parseComment(heading, props);
+          console.log(dca);
           return dca;
         }
       }
@@ -50,7 +51,6 @@ const parseComment = (
   if (comment.children[0].type == "text") {
     let text: Text = comment.children[0];
     if (text.value === "DataCap Allocation requested") {
-      console.log("Request found");
       return parseDataCapRequest(props);
     }
   }
