@@ -16,52 +16,50 @@ import {
 export const processIssue = async (
   octokit: Octokit,
   issue: Issue
-): Promise<DataCapRequest> => {
-  let dca: DataCapRequest = {
-    address: "",
-    id: "",
-    signerAddress: "",
-  };
-  let comments = await octokit.rest.issues.listComments({
-    owner: "filecoin-project",
-    repo: "filecoin-plus-large-datasets",
-    issue_number: issue.number,
-    per_page: 100,
-  });
-  console.log("Comments found: " + comments.data.length);
-  for (let comment of comments.data) {
-    let md = remark.parse(comment.body);
+): Promise<DataCapRequest | null> => {
+  try {
+    let comments = await octokit.rest.issues.listComments({
+      owner: "filecoin-project",
+      repo: "filecoin-plus-large-datasets",
+      issue_number: issue.number,
+      per_page: 100,
+    });
+    for (let comment of comments.data) {
+      let md = remark.parse(comment.body);
 
-    if (md.children[0].type == "heading") {
-      let heading: Heading = md.children[0];
-      if (heading.depth == 2) {
-        let [, ...props] = md.children;
-        parseComment(heading, props, dca);
+      if (md.children[0].type == "heading") {
+        let heading: Heading = md.children[0];
+        if (heading.depth == 2) {
+          let [, ...props] = md.children;
+          let dca = parseComment(heading, props);
+          return dca;
+        }
       }
     }
+  } catch (e) {
+    console.error(e);
+    return null;
   }
-  console.log(dca);
-  return dca;
+  return null;
 };
 
 const parseComment = (
   comment: Heading,
-  props: RootContent[],
-  request: DataCapRequest
-) => {
+  props: RootContent[]
+): DataCapRequest | null => {
   if (comment.children[0].type == "text") {
     let text: Text = comment.children[0];
     if (text.value === "DataCap Allocation requested") {
       console.log("Request found");
-      parseDataCapRequest(props, request);
+      return parseDataCapRequest(props);
     }
   }
+  return null;
 };
 
 const parseDataCapRequest = (
-  children: RootContent[],
-  request: DataCapRequest
-) => {
+  children: RootContent[]
+): DataCapRequest | null => {
   let map = new Map<string, string>();
   if (children.length % 2 != 0) {
     children.shift();
@@ -85,7 +83,10 @@ const parseDataCapRequest = (
     }
   }
 
-  request.address = map.get("Client address") as string;
-  request.id = map.get("Id") as string;
-  request.signerAddress = map.get("Multisig Notary address") as string;
+  let request: DataCapRequest = {
+    address: map.get("Client address") as string,
+    id: map.get("Id") as string,
+    signerAddress: map.get("Multisig Notary address") as string,
+  };
+  return request;
 };
