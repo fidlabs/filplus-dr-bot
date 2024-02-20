@@ -62,19 +62,26 @@ const parseDataCapRequest = (
   children: RootContent[],
   request: DataCapRequest
 ) => {
-  let propCount = children.length / 2;
   let map = new Map<string, string>();
+  if (children.length % 2 != 0) {
+    children.shift();
+  }
+  let propCount = children.length / 2;
   for (let i = 0; i < propCount; i++) {
     let key = children[i * 2];
     if (key.type == "heading") {
       let value: Blockquote = children[i * 2 + 1] as any;
       let k: Heading = key;
       let paragraph = value.children[0] as Paragraph;
-      if (paragraph.type == "paragraph")
+      if (paragraph.type == "paragraph") {
         map.set(
           (k.children[0] as Text).value,
           (paragraph.children[0] as Text).value
         );
+      } else {
+        console.log("invalid case:");
+        console.log(children);
+      }
     }
   }
 
