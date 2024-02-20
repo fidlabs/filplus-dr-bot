@@ -5,10 +5,15 @@ import { Issue } from './types/issue.js';
 import { DataCapRequest } from './types/request.js';
 import { processIssue } from './issueProcessor.js';
 import axios from 'axios';
+import { createClient } from 'redis';
 
 dotenv.config();
 
 (async () => {
+  const client = await createClient()
+    .on('error', (err) => console.log('Redis Client Error', err))
+    .connect();
+
   while (true) {
     let approvedRequests: DataCapRequest[] = [];
     let octokit = new Octokit({ auth: process.env.GITHUB_API_KEY });
@@ -40,11 +45,17 @@ dotenv.config();
           id: `${request.id}`
         });
         console.log(response.data);
+        debugger;
+        await client.hSet(request.address, { allocation: response.data.result, date: new Date().toString() });
+        const value = await client.hGetAll(request.address);
+        console.log(value);
+        debugger;
       }
     }
 
     await Delay(1000 * 60 * 5);
   }
+  await client.disconnect();
 })();
 
 async function Delay(ms: number) {
