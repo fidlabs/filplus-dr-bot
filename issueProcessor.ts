@@ -18,25 +18,32 @@ export const processIssue = async (
   issue: Issue
 ): Promise<DataCapRequest | null> => {
   try {
+    let dca: DataCapRequest | null = null;
     let comments = await octokit.paginate(octokit.rest.issues.listComments, {
       owner: process.env.OWNER as string,
       repo: process.env.REPO as string,
       issue_number: issue.number,
-      per_page: 35,
+      per_page: 100,
     });
     for (let comment of comments) {
+      if (comment.user?.login !== process.env.COMMENT_AUTHOR) continue;
       let md = remark.parse(comment.body);
 
       if (md.children[0].type == "heading") {
         let heading: Heading = md.children[0];
         if (heading.depth == 2) {
           let [, ...props] = md.children;
-          let dca = parseComment(heading, props);
-          console.log(dca);
-          return dca;
+          let newReq = parseComment(heading, props);
+          if (newReq) {
+            console.log("New Request");
+            dca = newReq;
+            console.log(comment.user?.login);
+          }
         }
       }
+      console.log(dca);
     }
+    return dca;
   } catch (e) {
     console.error(e);
     return null;
