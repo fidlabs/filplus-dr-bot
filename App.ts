@@ -10,7 +10,9 @@ dotenv.config();
 
 (async () => {
   while (true) {
-    const client = await createClient()
+    const client = await createClient({
+      url: process.env.REDIS_URL as string,
+    })
       .on("error", (err) => console.log("Redis Client Error", err))
       .connect();
     let approvedRequests: DataCapRequest[] = [];
