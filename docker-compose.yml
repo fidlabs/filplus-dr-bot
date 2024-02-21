@@ -18,12 +18,5 @@ services:
       - '3080:3080'
     environment:
       - REDIS_URL=redis://redis:6379
-      - OWNER=filecoin-project
-      - REPO=filecoin-plus-large-datasets
-      - COMMENT_AUTHOR=large-datacap-requests[bot]
-    secrets:
-      - github
-    entrypoint: ['/bin/sh', '-c', 'export GITHUB_API_KEY=$$(cat /var/run/secrets/github);  ./entrypoint.sh']
-secrets:
-  github:
-    file: ./github_api_key.txt
+    env_file:
+      - .env
