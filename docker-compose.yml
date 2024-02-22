@@ -11,3 +11,12 @@ services:
     environment:
       - REDIS_PASSWORD=my-password
       - REDIS_PORT=6379
+  monitor:
+    build: .
+    restart: always
+    ports:
+      - '3080:3080'
+    environment:
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - .env
