@@ -8,6 +8,8 @@ import { createClient } from "redis";
 
 dotenv.config();
 
+const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
+
 (async () => {
   while (true) {
     const client = await createClient({
@@ -34,6 +36,7 @@ dotenv.config();
         await Delay(1000);
       }
     }
+    let addresses: string[] = [];
     for (let request of approvedRequests) {
       if (request.address) {
         const response = await axios.post("https://api.node.glif.io/", {
@@ -42,26 +45,56 @@ dotenv.config();
           params: [`${request.address}`, null],
           id: `${request.id}`,
         });
-        console.log(response.data);
         let allocation = Number(response.data.result) ?? 0;
-        if (
-          Number(await client.hGet(request.address, "allocation")) !==
-          allocation
-        ) {
+        let cachedAllocation = Number(
+          await client.hGet(request.address, "allocation")
+        );
+        if (cachedAllocation !== allocation) {
           await client.hSet(request.address, {
             allocation,
             date: Date.now() as number,
           });
-          const value = await client.hGetAll(request.address);
-          console.log(value);
+          console.log(
+            "Allocation updated for:",
+            request.address,
+            " - before:",
+            cachedAllocation / 1024 ** 3,
+            "GB",
+            " - after:",
+            allocation / 1024 ** 3,
+            "GB",
+            "diff:",
+            (allocation - cachedAllocation) / 1024 ** 3,
+            "GB"
+          );
         } else {
           console.log(request.address, "- No change in allocation");
         }
-
-        // TODO: Check if application is stale
+        addresses.push(request.address);
       }
     }
+    // Update the list of addresses in redis
+    await client.sAdd(REDIS_DATACAP_ADDRESSES_SET, addresses);
 
+    // check for stale allocations
+    addresses = await client.sMembers(REDIS_DATACAP_ADDRESSES_SET);
+    let staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
+    for (let address of addresses) {
+      let entry: { allocation: number; date: number; stale?: string | null } =
+        await client.hGetAll(address).then((res) => {
+          return {
+            allocation: Number(res.allocation),
+            date: Number(res.date),
+            stale: res.stale,
+          };
+        });
+      if (entry.stale) continue;
+
+      if (Date.now() - entry.date > staleThreshold * 24 * 60 * 60 * 1000) {
+        await client.hSet(address, { stale: 1 });
+        console.log("Stale allocation removed for:", address);
+      }
+    }
     await client.disconnect();
     await Delay(1000 * 60 * 5);
   }
