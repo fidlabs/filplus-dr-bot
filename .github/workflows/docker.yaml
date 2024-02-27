@@ -1,10 +1,7 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -37,4 +34,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/kacperzuk-neti/${{ steps.metadata.outputs.NAME }}:${{ steps.metadata.outputs.VERSION }}
+          tags: ghcr.io/fidlabs/${{ steps.metadata.outputs.NAME }}:${{ steps.metadata.outputs.VERSION }}
