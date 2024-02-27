@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import { Octokit } from "octokit";
 import { Issue } from "./types/issue.js";
 import { DataCapRequest } from "./types/request.js";
-import { processIssue } from "./issueProcessor.js";
+import { parseClientName, processIssue } from "./issueProcessor.js";
 import axios, { all } from "axios";
 import { createClient } from "redis";
 
@@ -53,6 +53,7 @@ const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
           await client.hSet(request.address, {
             allocation,
             date: Date.now() as number,
+            issue: request.issueNumber,
           });
           console.log(
             "Allocation updated for:",
@@ -80,19 +81,58 @@ const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
     addresses = await client.sMembers(REDIS_DATACAP_ADDRESSES_SET);
     let staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
     for (let address of addresses) {
-      let entry: { allocation: number; date: number; stale?: string | null } =
-        await client.hGetAll(address).then((res) => {
-          return {
-            allocation: Number(res.allocation),
-            date: Number(res.date),
-            stale: res.stale,
-          };
-        });
+      let entry: {
+        allocation: number;
+        date: number;
+        stale?: string | null;
+        issue: number;
+      } = await client.hGetAll(address).then((res) => {
+        return {
+          allocation: Number(res.allocation),
+          date: Number(res.date),
+          stale: res.stale,
+          issue: Number(res.issue) ?? 0,
+        };
+      });
       if (entry.stale) continue;
 
       if (Date.now() - entry.date > staleThreshold * 24 * 60 * 60 * 1000) {
         await client.hSet(address, { stale: 1 });
+
         console.log("Stale allocation removed for:", address);
+        await octokit.rest.issues.createComment({
+          owner: process.env.OWNER as string,
+          repo: process.env.GOV_REPO as string,
+          issue_number: entry.issue,
+          body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
+        });
+
+        let clientName = (await parseClientName(octokit, entry.issue)).trim();
+        let allocationConverted = entry.allocation / 1024 ** 4;
+        let allocationUnit = "TiB";
+        if (allocationConverted > 1024) {
+          allocationConverted /= 1024;
+          allocationUnit = "PiB";
+        }
+        await octokit.rest.issues.create({
+          owner: process.env.OWNER as string,
+          repo: process.env.GOV_REPO as string,
+          title: `DataCap Removal for Issue #${entry.issue} - Stale for`,
+          body: `### Client Application URL or Application Number
+                    [${entry.issue}](https://github.com/${process.env.OWNER}/${
+            process.env.REPO
+          }/issues/${entry.issue})
+                    
+                    ### Client Name
+                    ${clientName}
+                    
+                    ### Client Address
+                    ${address}
+                    
+                    ### Amount of DataCap to be removed
+                    ${allocationConverted.toFixed(1)} ${allocationUnit}`,
+          labels: ["DcRemoveRequest"],
+        });
       }
     }
     await client.disconnect();
