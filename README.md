@@ -6,4 +6,4 @@ This repo provides a bot for DataCap Monitoring
 
 `docker compose` is set up to quickly run all necessary containers.
 
-`github_api_key.txt` file is necessary to pass the personal API token to the monitoring service. This is needed for now to avoid rate-limiting.
+`github_app_private_key.pem` file is necessary to authenticate requests made by your GitHub App to the GitHub API.
