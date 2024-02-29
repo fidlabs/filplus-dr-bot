@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@octokit/plugin-rest-endpoint-methods": "^10.2.0",
+    "@octokit/rest": "^20.0.2",
     "@types/mdast": "^4.0.3",
     "@types/node": "^20.11.17",
     "axios": "^1.6.7",

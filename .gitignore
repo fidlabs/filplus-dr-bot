@@ -128,4 +128,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-github_api_key.txt
+github_app_private_key.pem

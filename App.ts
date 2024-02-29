@@ -1,14 +1,22 @@
 import * as dotenv from "dotenv";
-import { Octokit } from "octokit";
+import { Octokit } from "@octokit/rest";
 import { Issue } from "./types/issue.js";
 import { DataCapRequest } from "./types/request.js";
 import { parseClientName, processIssue } from "./issueProcessor.js";
 import axios, { all } from "axios";
 import { createClient } from "redis";
+import getInstallationId from "./src/getInstallationId.js";
+import fs from 'fs'
+import { createAppAuth } from '@octokit/auth-app'
 
 dotenv.config();
 
 const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
+const appId = process.env.APP_ID || 'APP_ID';
+const privateKeyPath = process.env.PRIVATE_KEY_PATH || './YOUR_PRIVATE_KEY.pem';
+const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+const owner = process.env.OWNER || "OWNER";
+const repo = process.env.REPO || "REPO";
 
 (async () => {
   while (true) {
@@ -18,17 +26,28 @@ const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
       .on("error", (err) => console.log("Redis Client Error", err))
       .connect();
     let approvedRequests: DataCapRequest[] = [];
-    let octokit = new Octokit({ auth: process.env.GITHUB_API_KEY });
+
+    const installationId = await getInstallationId(owner, repo, {privateKey, appId})
+
+    let octokit = new Octokit({ 
+      authStrategy: createAppAuth,
+      auth:  {
+        appId,
+        privateKey,
+        installationId
+      }
+    });
 
     // get paginated issues for a rtepo
     let issues: Issue[] = await octokit.paginate(
       octokit.rest.issues.listForRepo,
       {
-        owner: process.env.OWNER as string,
-        repo: process.env.REPO as string,
+        owner,
+        repo,
         labels: "granted",
       }
-    );
+    ); 
+
     for (let issue of issues) {
       let approved = await processIssue(octokit, issue);
       if (approved) approvedRequests.push(approved);

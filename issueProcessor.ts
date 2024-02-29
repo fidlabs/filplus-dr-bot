@@ -1,4 +1,4 @@
-import { Octokit } from "octokit";
+import { Octokit } from "@octokit/rest";
 import { Issue } from "./types/issue.js";
 import { DataCapRequest } from "./types/request.js";
 import { remark } from "remark";
