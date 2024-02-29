@@ -102,12 +102,12 @@ const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
         console.log("Stale allocation removed for:", address);
         await octokit.rest.issues.createComment({
           owner: process.env.OWNER as string,
-          repo: process.env.GOV_REPO as string,
+          repo: process.env.REPO as string,
           issue_number: entry.issue,
           body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
         });
 
-        let clientName = (await parseClientName(octokit, entry.issue)).trim();
+        let clientName = (await parseClientName(octokit, entry.issue));
         let allocationConverted = entry.allocation / 1024 ** 4;
         let allocationUnit = "TiB";
         if (allocationConverted > 1024) {

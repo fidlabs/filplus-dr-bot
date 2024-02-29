@@ -112,5 +112,5 @@ export const parseClientName = async (
   let md = remark.parse(issue.data.body ?? "");
   let root = md.children[1] as Heading;
   let paragraph = root.children[0] as any as Text;
-  return paragraph.value;
+  return paragraph.value.trim();
 };
