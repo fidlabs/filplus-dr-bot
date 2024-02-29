@@ -37,6 +37,7 @@ export const processIssue = async (
           if (newReq) {
             console.log("New Request");
             dca = newReq;
+            dca.issueNumber = issue.number;
             console.log(comment.user?.login);
           }
         }
@@ -94,6 +95,22 @@ const parseDataCapRequest = (
     address: map.get("Client address") as string,
     id: map.get("Id") as string,
     signerAddress: map.get("Multisig Notary address") as string,
+    issueNumber: 0,
   };
   return request;
+};
+
+export const parseClientName = async (
+  octokit: Octokit,
+  issueNumber: number
+): Promise<string> => {
+  let issue = await octokit.rest.issues.get({
+    owner: process.env.OWNER as string,
+    repo: process.env.REPO as string,
+    issue_number: issueNumber,
+  });
+  let md = remark.parse(issue.data.body ?? "");
+  let root = md.children[1] as Heading;
+  let paragraph = root.children[0] as any as Text;
+  return paragraph.value.trim();
 };
