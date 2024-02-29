@@ -5,18 +5,20 @@ import { DataCapRequest } from "./types/request.js";
 import { parseClientName, processIssue } from "./issueProcessor.js";
 import axios, { all } from "axios";
 import { createClient } from "redis";
-import getInstallationId from "./src/getInstallationId.js";
-import fs from 'fs'
-import { createAppAuth } from '@octokit/auth-app'
+import getInstallationId from "./getInstallationId.js";
+import fs from "fs";
+import { createAppAuth } from "@octokit/auth-app";
 
 dotenv.config();
 
 const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
-const appId = process.env.APP_ID || 'APP_ID';
-const privateKeyPath = process.env.PRIVATE_KEY_PATH || './YOUR_PRIVATE_KEY.pem';
-const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+const appId = process.env.APP_ID || "APP_ID";
+const privateKeyPath = process.env.PRIVATE_KEY_PATH || "./YOUR_PRIVATE_KEY.pem";
+const privateKey = fs.readFileSync(privateKeyPath, "utf8");
 const owner = process.env.OWNER || "OWNER";
 const repo = process.env.REPO || "REPO";
+const govOwner = process.env.GOV_OWNER || "govOwner";
+const govRepo = process.env.GOV_REPO || "govRepo";
 
 (async () => {
   while (true) {
@@ -27,15 +29,18 @@ const repo = process.env.REPO || "REPO";
       .connect();
     let approvedRequests: DataCapRequest[] = [];
 
-    const installationId = await getInstallationId(owner, repo, {privateKey, appId})
+    const installationId = await getInstallationId(owner, repo, {
+      privateKey,
+      appId,
+    });
 
-    let octokit = new Octokit({ 
+    let octokit = new Octokit({
       authStrategy: createAppAuth,
-      auth:  {
+      auth: {
         appId,
         privateKey,
-        installationId
-      }
+        installationId,
+      },
     });
 
     // get paginated issues for a rtepo
@@ -46,7 +51,7 @@ const repo = process.env.REPO || "REPO";
         repo,
         labels: "granted",
       }
-    ); 
+    );
 
     for (let issue of issues) {
       let approved = await processIssue(octokit, issue);
@@ -119,14 +124,15 @@ const repo = process.env.REPO || "REPO";
         await client.hSet(address, { stale: 1 });
 
         console.log("Stale allocation removed for:", address);
+
         await octokit.rest.issues.createComment({
-          owner: process.env.OWNER as string,
-          repo: process.env.REPO as string,
+          owner,
+          repo,
           issue_number: entry.issue,
           body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
         });
 
-        let clientName = (await parseClientName(octokit, entry.issue));
+        let clientName = await parseClientName(octokit, entry.issue);
         let allocationConverted = entry.allocation / 1024 ** 4;
         let allocationUnit = "TiB";
         if (allocationConverted > 1024) {
@@ -134,24 +140,23 @@ const repo = process.env.REPO || "REPO";
           allocationUnit = "PiB";
         }
         await octokit.rest.issues.create({
-          owner: process.env.OWNER as string,
-          repo: process.env.GOV_REPO as string,
-          title: `DataCap Removal for Issue #${entry.issue} - Stale for`,
+          owner: govOwner,
+          repo: govRepo,
+          title: `DataCap Removal for Issue #${entry.issue}`,
           body: `### Client Application URL or Application Number
-                    [${entry.issue}](https://github.com/${process.env.OWNER}/${
-            process.env.REPO
-          }/issues/${entry.issue})
-                    
-                    ### Client Name
-                    ${clientName}
-                    
-                    ### Client Address
-                    ${address}
-                    
-                    ### Amount of DataCap to be removed
-                    ${allocationConverted.toFixed(1)} ${allocationUnit}`,
+[${entry.issue}](https://github.com/${owner}/${repo}/issues/${entry.issue})
+
+### Client Name
+${clientName}
+
+### Client Address
+${address}
+
+### Amount of DataCap to be removed
+${allocationConverted.toFixed(1)} ${allocationUnit}`,
           labels: ["DcRemoveRequest"],
         });
+        console.log("Stale allocation removal proposed for:", address);
       }
     }
     await client.disconnect();

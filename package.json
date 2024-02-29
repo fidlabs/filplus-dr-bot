@@ -21,5 +21,6 @@
     "redis": "^4.6.13",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0"
-  }
+  },
+  "main": "out/App.js"
 }

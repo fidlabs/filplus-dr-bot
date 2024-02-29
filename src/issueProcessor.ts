@@ -35,10 +35,8 @@ export const processIssue = async (
           let [, ...props] = md.children;
           let newReq = parseComment(heading, props);
           if (newReq) {
-            console.log("New Request");
             dca = newReq;
             dca.issueNumber = issue.number;
-            console.log(comment.user?.login);
           }
         }
       }
