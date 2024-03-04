@@ -1,48 +1,51 @@
-import * as dotenv from "dotenv";
-import { Octokit } from "@octokit/rest";
-import { Issue } from "./types/issue.js";
-import { DataCapRequest } from "./types/request.js";
-import { parseClientName, processIssue } from "./issueProcessor.js";
-import axios, { all } from "axios";
-import { RedisClientType, createClient } from "redis";
+import * as dotenv from 'dotenv';
+import {type Octokit} from '@octokit/rest';
+import {type Issue} from "./types/issue.js";
+import {type DataCapRequest} from "./types/request.js";
+import {parseClientName, processIssue} from "./issueProcessor.js";
+import axios, { all} from "axios";
+import {createClient} from "redis";
 import fs from "fs";
-import { createAppAuth } from "@octokit/auth-app";
-import { getOctokitInstance } from "./octokitBuilder.js";
+import {createAppAuth} from "@octokit/auth-app";
+import {getOctokitInstance} from "./octokitBuilder.js";
 
 dotenv.config();
 
-const REDIS_DATACAP_ADDRESSES_SET = "datacap-addresses";
-const appId = process.env.APP_ID || "APP_ID";
+const redisDatacapAddressesSet = "datacap-addresses";
+const appId = process.env.APP_ID ?? "APP_ID";
 const privateKeyPath = process.env.PRIVATE_KEY_PATH || "./YOUR_PRIVATE_KEY.pem";
 const privateKey = fs.readFileSync(privateKeyPath, "utf8");
-const owner = process.env.OWNER || "OWNER";
-const repo = process.env.REPO || "REPO";
-const govOwner = process.env.GOV_OWNER || "govOwner";
-const govRepo = process.env.GOV_REPO || "govRepo";
+const owner = process.env.OWNER ?? "OWNER";
+const repo = process.env.REPO ?? "REPO";
+const govOwner = process.env.GOV_OWNER ?? "govOwner";
+const govRepo = process.env.GOV_REPO ?? "govRepo";
 
 (async () => {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const client = await createClient({
-      url: process.env.REDIS_URL as string,
+      url: process.env.REDIS_URL!,
     })
-      .on("error", (err) => console.log("Redis Client Error", err))
+      .on("error", (err) => {
+        console.log("Redis Client Error", err);
+      })
       .connect(); // TODO: RedisClientType<M, F, S>
 
-    let requestsOctokit: Octokit = await getOctokitInstance(
+    const requestsOctokit: Octokit = await getOctokitInstance(
       appId,
       privateKey,
       owner,
       repo
     );
-    let govOctokit: Octokit = await getOctokitInstance(
+    const govOctokit: Octokit = await getOctokitInstance(
       appId,
       privateKey,
       govOwner,
       govRepo
     );
 
-    let approvedRequests = await getApprovedRequests(requestsOctokit);
-    let addresses = await indexAllocations(client, approvedRequests);
+    const approvedRequests = await getApprovedRequests(requestsOctokit);
+    const addresses = await indexAllocations(client, approvedRequests);
     console.log(addresses);
     handleStaleIssues(addresses, client, requestsOctokit, govOctokit);
 
@@ -55,9 +58,9 @@ const govRepo = process.env.GOV_REPO || "govRepo";
 async function getApprovedRequests(
   octokit: Octokit
 ): Promise<DataCapRequest[]> {
-  let approvedRequests: DataCapRequest[] = [];
-  // get paginated issues for a repo
-  let issues: Issue[] = await octokit.paginate(
+  const approvedRequests: DataCapRequest[] = [];
+  // Get paginated issues for a repo
+  const issues: Issue[] = await octokit.paginate(
     octokit.rest.issues.listForRepo,
     {
       owner,
@@ -66,13 +69,17 @@ async function getApprovedRequests(
     }
   );
 
-  for (let issue of issues) {
-    let approved = await processIssue(octokit, issue);
-    if (approved) approvedRequests.push(approved);
+  for (const issue of issues) {
+    const approved = await processIssue(octokit, issue);
+    if (approved) {
+      approvedRequests.push(approved);
+    }
+
     if (approvedRequests.length % 10 === 0) {
       await Delay(1000);
     }
   }
+
   return approvedRequests;
 }
 
@@ -81,7 +88,7 @@ async function indexAllocations(
   approvedRequests: DataCapRequest[]
 ): Promise<string[]> {
   let addresses: string[] = [];
-  for (let request of approvedRequests) {
+  for (const request of approvedRequests) {
     if (request.address) {
       const response = await axios.post("https://api.node.glif.io/", {
         jsonrpc: "2.0",
@@ -89,14 +96,14 @@ async function indexAllocations(
         params: [`${request.address}`, null],
         id: `${request.id}`,
       });
-      let allocation = Number(response.data.result) ?? 0;
-      let cachedAllocation = Number(
+      const allocation = Number(response.data.result) ?? 0;
+      const cachedAllocation = Number(
         await client.hGet(request.address, "allocation")
       );
       if (cachedAllocation !== allocation) {
         await client.hSet(request.address, {
           allocation,
-          date: Date.now() as number,
+          date: Date.now(),
           issue: request.issueNumber,
         });
         console.log(
@@ -115,12 +122,14 @@ async function indexAllocations(
       } else {
         console.log(request.address, "- No change in allocation");
       }
+
       addresses.push(request.address);
     }
   }
+
   // Update the list of addresses in redis
-  await client.sAdd(REDIS_DATACAP_ADDRESSES_SET, addresses);
-  addresses = await client.sMembers(REDIS_DATACAP_ADDRESSES_SET);
+  await client.sAdd(redisDatacapAddressesSet, addresses);
+  addresses = await client.sMembers(redisDatacapAddressesSet);
   return addresses;
 }
 
@@ -130,22 +139,22 @@ async function handleStaleIssues(
   datacapOctokit: Octokit,
   govOctokit: Octokit
 ) {
-  let staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
-  for (let address of addresses) {
-    let entry: {
+  const staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
+  for (const address of addresses) {
+    const entry: {
       allocation: number;
       date: number;
-      stale?: string | null;
+      stale?: string | undefined;
       issue: number;
-    } = await client.hGetAll(address).then((res: { [x: string]: string }) => {
-      return {
-        allocation: Number(res.allocation),
-        date: Number(res.date),
-        stale: res.stale,
-        issue: Number(res.issue) ?? 0,
-      };
-    });
-    if (entry.stale) continue;
+    } = await client.hGetAll(address).then((res: Record<string, string>) => ({
+      allocation: Number(res.allocation),
+      date: Number(res.date),
+      stale: res.stale,
+      issue: Number(res.issue) ?? 0,
+    }));
+    if (entry.stale) {
+      continue;
+    }
 
     if (Date.now() - entry.date > staleThreshold * 24 * 60 * 60 * 1000) {
       await client.hSet(address, { stale: 1 });
@@ -159,13 +168,14 @@ async function handleStaleIssues(
         body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
       });
 
-      let clientName = await parseClientName(datacapOctokit, entry.issue);
+      const clientName = await parseClientName(datacapOctokit, entry.issue);
       let allocationConverted = entry.allocation / 1024 ** 4;
       let allocationUnit = "TiB";
       if (allocationConverted > 1024) {
         allocationConverted /= 1024;
         allocationUnit = "PiB";
       }
+
       await govOctokit.rest.issues.create({
         owner: govOwner,
         repo: govRepo,
