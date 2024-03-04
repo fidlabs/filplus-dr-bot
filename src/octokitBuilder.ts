@@ -1,6 +1,27 @@
-import { Octokit } from "octokit";
+import { Octokit } from "@octokit/rest";
 import { createAppAuth } from "@octokit/auth-app";
 import { Auth } from "./types/auth.js";
+
+export async function getOctokitInstance(
+  appId: string,
+  privateKey: string,
+  owner: string,
+  repo: string
+): Promise<Octokit> {
+  const installationId = await getInstallationId(owner, repo, {
+    privateKey,
+    appId,
+  });
+
+  return new Octokit({
+    authStrategy: createAppAuth,
+    auth: {
+      appId,
+      privateKey,
+      installationId,
+    },
+  });
+}
 
 async function getInstallationId(owner: string, repo: string, auth: Auth) {
   const appOctokit = new Octokit({
@@ -24,5 +45,3 @@ async function getInstallationId(owner: string, repo: string, auth: Auth) {
     return null;
   }
 }
-
-export default getInstallationId;

@@ -4,10 +4,10 @@ import { Issue } from "./types/issue.js";
 import { DataCapRequest } from "./types/request.js";
 import { parseClientName, processIssue } from "./issueProcessor.js";
 import axios, { all } from "axios";
-import { createClient } from "redis";
-import getInstallationId from "./getInstallationId.js";
+import { RedisClientType, createClient } from "redis";
 import fs from "fs";
 import { createAppAuth } from "@octokit/auth-app";
+import { getOctokitInstance } from "./octokitBuilder.js";
 
 dotenv.config();
 
@@ -26,124 +26,151 @@ const govRepo = process.env.GOV_REPO || "govRepo";
       url: process.env.REDIS_URL as string,
     })
       .on("error", (err) => console.log("Redis Client Error", err))
-      .connect();
-    let approvedRequests: DataCapRequest[] = [];
+      .connect(); // TODO: RedisClientType<M, F, S>
 
-    const installationId = await getInstallationId(owner, repo, {
-      privateKey,
+    let requestsOctokit: Octokit = await getOctokitInstance(
       appId,
-    });
-
-    let octokit = new Octokit({
-      authStrategy: createAppAuth,
-      auth: {
-        appId,
-        privateKey,
-        installationId,
-      },
-    });
-
-    // get paginated issues for a rtepo
-    let issues: Issue[] = await octokit.paginate(
-      octokit.rest.issues.listForRepo,
-      {
-        owner,
-        repo,
-        labels: "granted",
-      }
+      privateKey,
+      owner,
+      repo
+    );
+    let govOctokit: Octokit = await getOctokitInstance(
+      appId,
+      privateKey,
+      govOwner,
+      govRepo
     );
 
-    for (let issue of issues) {
-      let approved = await processIssue(octokit, issue);
-      if (approved) approvedRequests.push(approved);
-      if (approvedRequests.length % 10 === 0) {
-        await Delay(1000);
-      }
-    }
-    let addresses: string[] = [];
-    for (let request of approvedRequests) {
-      if (request.address) {
-        const response = await axios.post("https://api.node.glif.io/", {
-          jsonrpc: "2.0",
-          method: "Filecoin.StateVerifiedClientStatus",
-          params: [`${request.address}`, null],
-          id: `${request.id}`,
-        });
-        let allocation = Number(response.data.result) ?? 0;
-        let cachedAllocation = Number(
-          await client.hGet(request.address, "allocation")
-        );
-        if (cachedAllocation !== allocation) {
-          await client.hSet(request.address, {
-            allocation,
-            date: Date.now() as number,
-            issue: request.issueNumber,
-          });
-          console.log(
-            "Allocation updated for:",
-            request.address,
-            " - before:",
-            cachedAllocation / 1024 ** 3,
-            "GB",
-            " - after:",
-            allocation / 1024 ** 3,
-            "GB",
-            "diff:",
-            (allocation - cachedAllocation) / 1024 ** 3,
-            "GB"
-          );
-        } else {
-          console.log(request.address, "- No change in allocation");
-        }
-        addresses.push(request.address);
-      }
-    }
-    // Update the list of addresses in redis
-    await client.sAdd(REDIS_DATACAP_ADDRESSES_SET, addresses);
+    let approvedRequests = await getApprovedRequests(requestsOctokit);
+    let addresses = await indexAllocations(client, approvedRequests);
+    console.log(addresses);
+    handleStaleIssues(addresses, client, requestsOctokit, govOctokit);
 
-    // check for stale allocations
-    addresses = await client.sMembers(REDIS_DATACAP_ADDRESSES_SET);
-    let staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
-    for (let address of addresses) {
-      let entry: {
-        allocation: number;
-        date: number;
-        stale?: string | null;
-        issue: number;
-      } = await client.hGetAll(address).then((res) => {
-        return {
-          allocation: Number(res.allocation),
-          date: Number(res.date),
-          stale: res.stale,
-          issue: Number(res.issue) ?? 0,
-        };
+    await client.disconnect();
+    await Delay(1000 * 60 * 5);
+  }
+})();
+
+// TODO: Move these functions to a separate file? What are the conventions in TS?
+async function getApprovedRequests(
+  octokit: Octokit
+): Promise<DataCapRequest[]> {
+  let approvedRequests: DataCapRequest[] = [];
+  // get paginated issues for a repo
+  let issues: Issue[] = await octokit.paginate(
+    octokit.rest.issues.listForRepo,
+    {
+      owner,
+      repo,
+      labels: "granted",
+    }
+  );
+
+  for (let issue of issues) {
+    let approved = await processIssue(octokit, issue);
+    if (approved) approvedRequests.push(approved);
+    if (approvedRequests.length % 10 === 0) {
+      await Delay(1000);
+    }
+  }
+  return approvedRequests;
+}
+
+async function indexAllocations(
+  client: any, // TODO: RedisClientType<M, F, S>
+  approvedRequests: DataCapRequest[]
+): Promise<string[]> {
+  let addresses: string[] = [];
+  for (let request of approvedRequests) {
+    if (request.address) {
+      const response = await axios.post("https://api.node.glif.io/", {
+        jsonrpc: "2.0",
+        method: "Filecoin.StateVerifiedClientStatus",
+        params: [`${request.address}`, null],
+        id: `${request.id}`,
       });
-      if (entry.stale) continue;
-
-      if (Date.now() - entry.date > staleThreshold * 24 * 60 * 60 * 1000) {
-        await client.hSet(address, { stale: 1 });
-
-        console.log("Stale allocation removed for:", address);
-
-        await octokit.rest.issues.createComment({
-          owner,
-          repo,
-          issue_number: entry.issue,
-          body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
+      let allocation = Number(response.data.result) ?? 0;
+      let cachedAllocation = Number(
+        await client.hGet(request.address, "allocation")
+      );
+      if (cachedAllocation !== allocation) {
+        await client.hSet(request.address, {
+          allocation,
+          date: Date.now() as number,
+          issue: request.issueNumber,
         });
+        console.log(
+          "Allocation updated for:",
+          request.address,
+          " - before:",
+          cachedAllocation / 1024 ** 3,
+          "GB",
+          " - after:",
+          allocation / 1024 ** 3,
+          "GB",
+          "diff:",
+          (allocation - cachedAllocation) / 1024 ** 3,
+          "GB"
+        );
+      } else {
+        console.log(request.address, "- No change in allocation");
+      }
+      addresses.push(request.address);
+    }
+  }
+  // Update the list of addresses in redis
+  await client.sAdd(REDIS_DATACAP_ADDRESSES_SET, addresses);
+  addresses = await client.sMembers(REDIS_DATACAP_ADDRESSES_SET);
+  return addresses;
+}
 
-        let clientName = await parseClientName(octokit, entry.issue);
-        let allocationConverted = entry.allocation / 1024 ** 4;
-        let allocationUnit = "TiB";
-        if (allocationConverted > 1024) {
-          allocationConverted /= 1024;
-          allocationUnit = "PiB";
-        }
-        await octokit.rest.issues.create({
-          owner: govOwner,
-          repo: govRepo,
-          title: `DataCap Removal for Issue #${entry.issue}`,
-          body: `### Client Application URL or Application Number
+async function handleStaleIssues(
+  addresses: string[],
+  client: any, // TODO: RedisClientType<M, F, S>
+  datacapOctokit: Octokit,
+  govOctokit: Octokit
+) {
+  let staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
+  for (let address of addresses) {
+    let entry: {
+      allocation: number;
+      date: number;
+      stale?: string | null;
+      issue: number;
+    } = await client.hGetAll(address).then((res: { [x: string]: string }) => {
+      return {
+        allocation: Number(res.allocation),
+        date: Number(res.date),
+        stale: res.stale,
+        issue: Number(res.issue) ?? 0,
+      };
+    });
+    if (entry.stale) continue;
+
+    if (Date.now() - entry.date > staleThreshold * 24 * 60 * 60 * 1000) {
+      await client.hSet(address, { stale: 1 });
+
+      console.log("Stale allocation removed for:", address);
+
+      await datacapOctokit.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: entry.issue,
+        body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
+      });
+
+      let clientName = await parseClientName(datacapOctokit, entry.issue);
+      let allocationConverted = entry.allocation / 1024 ** 4;
+      let allocationUnit = "TiB";
+      if (allocationConverted > 1024) {
+        allocationConverted /= 1024;
+        allocationUnit = "PiB";
+      }
+      await govOctokit.rest.issues.create({
+        owner: govOwner,
+        repo: govRepo,
+        title: `DataCap Removal for Issue #${entry.issue}`,
+        body: `### Client Application URL or Application Number
 [${entry.issue}](https://github.com/${owner}/${repo}/issues/${entry.issue})
 
 ### Client Name
@@ -154,15 +181,12 @@ ${address}
 
 ### Amount of DataCap to be removed
 ${allocationConverted.toFixed(1)} ${allocationUnit}`,
-          labels: ["DcRemoveRequest"],
-        });
-        console.log("Stale allocation removal proposed for:", address);
-      }
+        labels: ["DcRemoveRequest"],
+      });
+      console.log("Stale allocation removal proposed for:", address);
     }
-    await client.disconnect();
-    await Delay(1000 * 60 * 5);
   }
-})();
+}
 
 async function Delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
