@@ -82,7 +82,7 @@ const parseDataCapRequest = (
 	for (let i = 0; i < propCount; i++) {
 		const key = children[i * 2];
 		if (key.type === 'heading') {
-			const value: Blockquote = children[(i * 2) + 1] as Blockquote;
+			const value: Blockquote = children[i * 2 + 1] as Blockquote;
 			const k: Heading = key;
 			const paragraph = value.children[0] as Paragraph;
 			if (paragraph.type === 'paragraph') {

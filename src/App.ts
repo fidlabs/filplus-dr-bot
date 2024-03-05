@@ -26,7 +26,7 @@ const govRepo = process.env.GOV_REPO ?? 'govRepo';
 		const client = await createClient({
 			url: process.env.REDIS_URL!,
 		})
-			.on('error', err => {
+			.on('error', (err) => {
 				console.log('Redis Client Error', err);
 			})
 			.connect(); // TODO: RedisClientType<M, F, S>
@@ -45,11 +45,20 @@ const govRepo = process.env.GOV_REPO ?? 'govRepo';
 		);
 
 		const approvedRequests = await getApprovedRequests(requestsOctokit);
-		const addresses = await indexAllocations(client, approvedRequests);
-		console.log(addresses);
-		await handleStaleIssues(addresses, client, requestsOctokit, govOctokit).catch(e => {
-			console.log(e);
-		});
+		if (approvedRequests.length > 0) {
+			const addresses = await indexAllocations(client, approvedRequests);
+			await handleStaleIssues(
+				addresses,
+				client,
+				requestsOctokit,
+				govOctokit,
+			).catch((e) => {
+				console.log(e);
+			});
+		}
+		else {
+			console.log(`No approved requests found in the repo '${owner}/${repo}' issues.`);
+		}
 
 		await client.disconnect();
 		await delay(1000 * 3600);
@@ -114,13 +123,13 @@ async function indexAllocations(
 					'Allocation updated for:',
 					request.address,
 					' - before:',
-					cachedAllocation / (1024 ** 3),
+					cachedAllocation / 1024 ** 3,
 					'GB',
 					' - after:',
-					allocation / (1024 ** 3),
+					allocation / 1024 ** 3,
 					'GB',
 					'diff:',
-					(allocation - cachedAllocation) / (1024 ** 3),
+					(allocation - cachedAllocation) / 1024 ** 3,
 					'GB',
 				);
 			}
@@ -131,7 +140,7 @@ async function indexAllocations(
 
 	// Update the list of addresses in redis
 	await client.sAdd(redisDatacapAddressesSet, addresses);
-	addresses = await client.sMembers(redisDatacapAddressesSet) as string[];
+	addresses = (await client.sMembers(redisDatacapAddressesSet)) as string[];
 	return addresses;
 }
 
@@ -172,7 +181,7 @@ async function handleStaleIssues(
 			});
 
 			const clientName = await parseClientName(datacapOctokit, entry.issue);
-			let allocationConverted = entry.allocation / (1024 ** 4);
+			let allocationConverted = entry.allocation / 1024 ** 4;
 			let allocationUnit = 'TiB';
 			if (allocationConverted > 1024) {
 				allocationConverted /= 1024;
@@ -202,5 +211,5 @@ ${allocationConverted.toFixed(1)} ${allocationUnit}`,
 }
 
 async function delay(ms: number) {
-	return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
