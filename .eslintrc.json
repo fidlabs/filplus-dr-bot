@@ -3,7 +3,7 @@
         "browser": true,
         "es2021": true
     },
-    "extends": ["xo", "plugin:prettier/recommended"],
+    "extends": "xo",
     "overrides": [
         {
             "extends": [
@@ -20,5 +20,7 @@
         "sourceType": "module"
     },
     "rules": {
+        "no-warning-comments": 0,
+        "no-await-in-loop": 0
     }
 }

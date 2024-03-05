@@ -30,7 +30,7 @@ async function getInstallationId(owner: string, repo: string, auth: Auth) {
 	});
 	try {
 		const {data: installations} = await appOctokit.request(
-			"GET /repos/{owner}/{repo}/installation",
+			'GET /repos/{owner}/{repo}/installation',
 			{
 				owner,
 				repo,

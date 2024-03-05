@@ -4,5 +4,7 @@ export type Issue = {
 	number: number;
 	state: string;
 	title: string;
-	body?: string | undefined;
+	// That's how github octokit types it, not my problem
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	body?: string | null | undefined;
 };
