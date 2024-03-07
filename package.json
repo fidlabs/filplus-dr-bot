@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"devDependencies": {
+		"@types/express": "^4.17.21",
 		"@typescript-eslint/eslint-plugin": "^7.1.0",
 		"@typescript-eslint/parser": "^7.1.0",
 		"eslint": "^8.57.0",
@@ -11,7 +12,7 @@
 		"eslint-config-xo-typescript": "^3.0.0",
 		"eslint-plugin-prettier": "^5.1.3",
 		"prettier": "3.2.5",
-		"typescript": "^5.3.3"
+		"typescript": "^5.4.2"
 	},
 	"scripts": {
 		"lint": "npx eslint . --ext .ts",
@@ -20,7 +21,9 @@
 		"prettier:fix": "npm run prettier -- --write",
 		"fmt": "npm run prettier:fix && npm run lint:fix",
 		"build": "tsc --project .",
-		"start": "node out/App.js"
+		"start": "node out/App.js",
+		"server": "node out/server.js",
+		"docker": "docker compose down && docker compose build && docker compose up"
 	},
 	"dependencies": {
 		"@octokit/plugin-rest-endpoint-methods": "^10.2.0",
@@ -30,6 +33,7 @@
 		"@types/node": "^20.11.17",
 		"axios": "^1.6.7",
 		"dotenv": "^16.4.3",
+		"express": "^4.18.3",
 		"mdast": "^3.0.0",
 		"octokit": "^3.1.2",
 		"redis": "^4.6.13",

@@ -20,6 +20,8 @@ const repo = process.env.REPO ?? 'REPO';
 const govOwner = process.env.GOV_OWNER ?? 'govOwner';
 const govRepo = process.env.GOV_REPO ?? 'govRepo';
 
+// Start the Express server
+
 (async () => {
 	// eslint-disable-next-line no-constant-condition
 	while (true) {
@@ -55,9 +57,10 @@ const govRepo = process.env.GOV_REPO ?? 'govRepo';
 			).catch((e) => {
 				console.log(e);
 			});
-		}
-		else {
-			console.log(`No approved requests found in the repo '${owner}/${repo}' issues.`);
+		} else {
+			console.log(
+				`No approved requests found in the repo '${owner}/${repo}' issues.`,
+			);
 		}
 
 		await client.disconnect();
