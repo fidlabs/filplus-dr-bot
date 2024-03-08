@@ -14,6 +14,7 @@ function App() {
 				my={4}
 				display="flex"
 				alignItems="center"
+				justifyContent="center"
 				gap={4}
 				p={20}
 				sx={{border: '2px solid grey'}}

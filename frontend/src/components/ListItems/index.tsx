@@ -1,40 +1,33 @@
-import {useContext, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
-import {signDataCap} from '../../functions/sign';
-import {DeviceContext} from '../../context/DeviceContext';
+import {commentIssueWithSign, getDataCaps} from '../../api';
+import {DataCap} from '../../types/DataCap';
 
 const ListItems = () => {
-	const [dataCaps, setDataCaps] = useState(null);
-	const {ledgerApp} = useContext(DeviceContext);
-
-	const fetchData = () => {
-		fetch('http://localhost:3000/redis-data')
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
-			})
-			.then((data) => {
-				setDataCaps(data);
-				console.log('Data from Redis:', data);
-			})
-			.catch((error) => {
-				console.error('There was a problem with your fetch operation:', error);
-			});
-	};
+	const [dataCaps, setDataCaps] = useState<DataCap[] | null>(null);
 
 	useEffect(() => {
-		fetchData();
+		getDataCaps().then((response) => {
+			setDataCaps(response.dataCaps);
+		});
 	}, []);
 
 	if (!dataCaps) return;
 	return (
 		<div>
-			<Button variant="contained" onClick={() => signDataCap(ledgerApp)}>
-				Connect wallet
-			</Button>
-			{dataCaps.datacaps.allocation}
+			{dataCaps.map((datacap) => {
+				return (
+					<div key={datacap.member} style={{display: 'flex', gap: '50px'}}>
+						<span>{datacap.member}</span>
+						<Button
+							variant="contained"
+							onClick={() => commentIssueWithSign(datacap.issue)} // TODO - HERE SHOULD BE SIGN, after sign method, should be comment on github with this sign
+						>
+							Sign
+						</Button>
+					</div>
+				);
+			})}
 		</div>
 	);
 };

@@ -1,6 +1,7 @@
 import {Octokit} from '@octokit/rest';
 import {createAppAuth} from '@octokit/auth-app';
 import {type Auth} from './types/auth.js';
+import fetch from 'node-fetch';
 
 export async function getOctokitInstance(
 	appId: string,
@@ -27,6 +28,10 @@ async function getInstallationId(owner: string, repo: string, auth: Auth) {
 	const appOctokit = new Octokit({
 		authStrategy: createAppAuth,
 		auth,
+		request: {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			fetch,
+		},
 	});
 	try {
 		const {data: installations} = await appOctokit.request(
