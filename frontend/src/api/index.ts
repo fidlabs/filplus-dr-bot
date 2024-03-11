@@ -14,9 +14,9 @@ const defaultConfigPostData = (body: object) => ({
 const getDataCaps = async () =>
 	fetchWithErrorHandling<{dataCaps: DataCap[]}>(`${apiUrl}/datacaps`);
 
-const commentIssueWithSign = (issueNumber: number) => {
+const commentIssueWithSign = async (issueNumber: string) => {
 	const config = defaultConfigPostData({issueNumber});
-	fetchWithErrorHandling<void>(`${apiUrl}/post-issue`, config);
+	await fetchWithErrorHandling<void>(`${apiUrl}/post-issue`, config);
 };
 
 export {getDataCaps, commentIssueWithSign};

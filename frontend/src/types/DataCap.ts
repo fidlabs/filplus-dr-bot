@@ -1,7 +1,7 @@
 export type DataCap = {
-  allocation: number,
-  date: number,
-  issue: number,
-  stale: number,
+  allocation: string,
+  date: string,
+  issue: string,
+  stale: string,
   member: string
 }
