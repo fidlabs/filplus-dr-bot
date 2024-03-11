@@ -8,7 +8,7 @@ const redisUrl = process.env.REDIS_URL!;
 
 export const makeStale = async (address: string, res: Response) => {
 	const client = await createClient({url: redisUrl}).connect();
-	let result = await client.hSet(address, { "stale": 1});
+	let result = await client.hSet(address, { "date": 0 });
 
 
 	res.json({result});
