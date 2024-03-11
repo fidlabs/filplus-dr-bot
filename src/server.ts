@@ -2,6 +2,7 @@ import express, {type Application, type Request, type Response} from 'express';
 import bodyParser from 'body-parser';
 import {getDataCaps} from './serverFunctions/datacaps.js';
 import {postIssue} from './serverFunctions/postIssue.js';
+import { makeStale } from './serverFunctions/makeStale.js';
 
 const errorHandler = (handleFunction: () => void, res: Response) => {
 	try {
@@ -29,6 +30,13 @@ app.post('/post-issue', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {issueNumber: number};
 		await postIssue(body);
+	}, res);
+});
+
+app.post('/make-stale', async (req: Request, res: Response) => {
+	errorHandler(async () => {
+		const body = req.body as {address: string};
+		await makeStale(body.address, res);
 	}, res);
 });
 
