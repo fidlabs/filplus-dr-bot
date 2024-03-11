@@ -3,7 +3,6 @@ import {LotusMessage} from '../types/TransactionRaw';
 import {FilecoinApp} from '@zondax/ledger-filecoin';
 
 type Sign = (
-	ledgerApp: FilecoinApp,
 	filecoinMessage?: LotusMessage,
 	indexAccount?: number,
 ) => Promise<string>;

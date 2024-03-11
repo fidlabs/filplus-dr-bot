@@ -4,10 +4,12 @@ import {commentIssueWithSign, getDataCaps} from '../../api';
 import {DataCap} from '../../types/DataCap';
 import {SignRemoveDataCapMessage} from '../../types/TransactionRaw';
 import useLedgerWallet from '../../hooks/useLedgerWallet';
+import useBurnerWallet from '../../hooks/useBurnerWallet';
 
 const NotaryList = () => {
 	const [dataCaps, setDataCaps] = useState<DataCap[] | null>(null);
 	const {ledgerApp, signRemoveDataCap} = useLedgerWallet();
+	const { sign } = useBurnerWallet()
 
 	useEffect(() => {
 		getDataCaps().then((response) => {
@@ -19,9 +21,10 @@ const NotaryList = () => {
 		signData: SignRemoveDataCapMessage,
 		issue: string,
 	) => {
-		const signRemoveData = await signRemoveDataCap(signData);
+		const signRemoveData = await sign(signData);
 		if (signRemoveData) {
-			await commentIssueWithSign(issue);
+			console.log(signRemoveData)
+			await commentIssueWithSign(issue, signRemoveData.Signature);
 		}
 	};
 	console.log(dataCaps);

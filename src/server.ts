@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import {getDataCaps} from './serverFunctions/datacaps.js';
 import {postIssue} from './serverFunctions/postIssue.js';
 import { makeStale } from './serverFunctions/makeStale.js';
+import { Signature } from './types/signature.js';
 
 const errorHandler = (handleFunction: () => void, res: Response) => {
 	try {
@@ -28,7 +29,7 @@ app.use((req, res, next) => {
 
 app.post('/post-issue', async (req: Request, res) => {
 	errorHandler(async () => {
-		const body = req.body as {issueNumber: number};
+		const body = req.body as {issueNumber: number; signature: Signature};
 		await postIssue(body);
 	}, res);
 });

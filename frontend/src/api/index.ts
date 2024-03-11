@@ -1,4 +1,5 @@
 import {DataCap} from '../types/DataCap';
+import {Signature} from '../types/Signature';
 import {fetchWithErrorHandling} from './errorHandler';
 
 const apiUrl = import.meta.env.VITE_APP_URL ?? 'http://localhost:3000';
@@ -14,8 +15,11 @@ const defaultConfigPostData = (body: object) => ({
 const getDataCaps = async () =>
 	fetchWithErrorHandling<{dataCaps: DataCap[]}>(`${apiUrl}/datacaps`);
 
-const commentIssueWithSign = async (issueNumber: string) => {
-	const config = defaultConfigPostData({issueNumber});
+const commentIssueWithSign = async (
+	issueNumber: string,
+	signature: Signature,
+) => {
+	const config = defaultConfigPostData({issueNumber, signature});
 	await fetchWithErrorHandling<void>(`${apiUrl}/post-issue`, config);
 };
 

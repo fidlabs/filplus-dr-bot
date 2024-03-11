@@ -2,6 +2,7 @@ import fs from 'fs';
 import {getOctokitInstance} from '../octokitBuilder.js';
 import {type Octokit} from '@octokit/rest';
 import * as dotenv from 'dotenv';
+import {type Signature} from '../types/signature.js';
 dotenv.config();
 
 const appId = process.env.APP_ID ?? 'APP_ID';
@@ -12,10 +13,11 @@ const repo = process.env.REPO ?? 'REPO';
 
 type Body = {
 	issueNumber: number;
+	signature: Signature;
 };
 
 export const postIssue = async (body: Body) => {
-	const {issueNumber} = body;
+	const {issueNumber, signature} = body;
 	const requestsOctokit: Octokit = await getOctokitInstance(
 		appId,
 		privateKey,
@@ -28,6 +30,6 @@ export const postIssue = async (body: Body) => {
 		repo,
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		issue_number: issueNumber,
-		body: 'story data after sign',
+		body: `${issueNumber} ${signature.Data} ${signature.Type}`,
 	});
 };

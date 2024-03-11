@@ -1,19 +1,19 @@
 import './App.css';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 import NotaryList from './components/NotaryList';
 import RootList from './components/RootList';
 import useAccounts from './hooks/useAccounts';
-import useLedgerWallet from './hooks/useLedgerWallet';
-import {FilecoinApp} from '@zondax/ledger-filecoin';
+import {DeviceContext} from './components/Context/DeviceContext';
 
 enum ListState {
 	NOTARY = 'notary',
 	ROOT = 'root',
 }
 
-function Content({ledgerApp}: {ledgerApp: FilecoinApp}) {
+function Content() {
+	const {ledgerApp} = useContext(DeviceContext);
 	const {accounts, selectAccount, activeAccount} = useAccounts(ledgerApp);
 	const [listState, setListState] = useState<ListState | null>(null);
 
@@ -44,7 +44,7 @@ function Content({ledgerApp}: {ledgerApp: FilecoinApp}) {
 }
 
 function App() {
-	const {ledgerApp, loadLedger} = useLedgerWallet();
+	const {loadLedgerData, ledgerApp} = useContext(DeviceContext);
 	return (
 		<div>
 			<Box
@@ -66,12 +66,12 @@ function App() {
 						p={20}
 						sx={{border: '2px solid grey'}}
 					>
-						<Button variant="contained" onClick={loadLedger}>
+						<Button variant="contained" onClick={loadLedgerData}>
 							Connect wallet
 						</Button>
 					</Box>
 				) : (
-					<Content ledgerApp={ledgerApp} />
+					<Content />
 				)}
 			</Box>
 		</div>

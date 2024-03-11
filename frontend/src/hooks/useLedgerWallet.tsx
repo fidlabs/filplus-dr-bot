@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 import FilecoinApp from '@zondax/ledger-filecoin';
 import {ConfigLotusNode} from '../types/ConfigLotusNode';
 import {mapSeries} from 'bluebird';
@@ -7,6 +7,7 @@ import {LotusMessage, SignRemoveDataCapMessage} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import {generateSignedMessage} from '../functions/generateSignMessage';
+import {DeviceContext} from '../components/Context/DeviceContext';
 
 const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
 const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
@@ -32,21 +33,11 @@ const handleErrors = (response: any) => {
 };
 
 const useLedgerWallet = () => {
+	const {ledgerApp} = useContext(DeviceContext);
 	const [ledgerBusy, setLedgerBusy] = useState<boolean>(false);
 	const [api, setApi] = useState<any>(null);
 	const [lotusNode, setLotusNode] = useState<ConfigLotusNode | null>(null);
 	const [networkIndex, setNetworkIndex] = useState<number>(0);
-	const [ledgerApp, setLedgerApp] = useState<FilecoinApp | null>(null);
-
-	const loadLedger = async () => {
-		try {
-			const transport = await TransportWebUSB.create();
-			const app = new FilecoinApp(transport);
-			setLedgerApp(app);
-		} catch (error) {
-			console.error('Error loading data from Ledger device:', error);
-		}
-	};
 
 	const getAccounts = async (nStart = 0) => {
 		const paths = [];
@@ -140,7 +131,7 @@ const useLedgerWallet = () => {
 			proposalId,
 		} = submitRemoveData;
 		try {
-			const verifyAPI = createVerifyAPI();
+			const verifyAPI = createVerifyAPI(sign, getAccounts);
 			const rkAccounts = await getAccounts(ledgerApp);
 			let action = '';
 			let messageID = '';
@@ -217,7 +208,6 @@ const useLedgerWallet = () => {
 		getAccounts,
 		signRemoveDataCap,
 		sign,
-		loadLedger,
 		submitRemoveDataCap,
 	};
 };
