@@ -17,7 +17,7 @@
     "@filecoin-shipyard/lotus-client-provider-nodejs": "^1.1.1",
     "@filecoin-shipyard/lotus-client-rpc": "^1.2.0",
     "@filecoin-shipyard/lotus-client-schema": "^4.2.0",
-    "@glif/filecoin-address": "^3.0.4",
+    "@glif/filecoin-address": "1.1.0",
     "@ledgerhq/hw-transport-webusb": "^6.28.4",
     "@mui/material": "^5.15.12",
     "@zondax/filecoin-signing-tools": "^2.4.3",
@@ -25,6 +25,7 @@
     "bluebird": "^3.7.2",
     "cbor": "^9.0.2",
     "dotenv": "^16.4.5",
+    "esbuild-plugin-polyfill-node": "^0.3.0",
     "js-sha256": "^0.11.0",
     "path": "^0.12.7",
     "react": "^18.2.0",
@@ -43,6 +44,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "typescript": "^5.2.2",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vite-plugin-node-polyfills": "^0.21.0"
   }
 }

@@ -13,7 +13,7 @@ export const createVerifyAPI = (
 	getAccounts: (nStart?: number) => Promise<any[]>,
 ): VerifyAPI => {
 	return new VerifyAPI(
-		VerifyAPI.browserProvider('http://127.0.0.1:1234', {
+		VerifyAPI.browserProvider('http://localhost:1235/proxy/rpc/v0', {
 			token:
 				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Zw9-PRz4WxJIfi3NGDY8uLC3zqS-zQPccPe7OqK2Cgk',
 		}),

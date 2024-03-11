@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {FilecoinApp} from '@zondax/ledger-filecoin';
+import FilecoinApp from '@zondax/ledger-filecoin';
 import {ConfigLotusNode} from '../types/ConfigLotusNode';
 import {mapSeries} from 'bluebird';
 import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
@@ -65,7 +65,6 @@ const useLedgerWallet = () => {
 	};
 
 	const sign = async (
-		ledgerApp: FilecoinApp,
 		filecoinMessage: LotusMessage = {
 			To: 'f02838320',
 			From: 'f02838320',
@@ -92,7 +91,6 @@ const useLedgerWallet = () => {
 	};
 
 	const signRemoveDataCap = async (
-		ledgerApp: FilecoinApp, // refactor
 		message: SignRemoveDataCapMessage,
 		indexAccount: number = 1,
 	) => {

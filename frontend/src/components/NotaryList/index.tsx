@@ -19,7 +19,7 @@ const NotaryList = () => {
 		signData: SignRemoveDataCapMessage,
 		issue: string,
 	) => {
-		const signRemoveData = await signRemoveDataCap(ledgerApp, signData);
+		const signRemoveData = await signRemoveDataCap(signData);
 		if (signRemoveData) {
 			await commentIssueWithSign(issue);
 		}
@@ -31,7 +31,7 @@ const NotaryList = () => {
 			{dataCaps.map((dataCap) => {
 				const {member, allocation, issue, stale} = dataCap;
 				const signData: SignRemoveDataCapMessage = {
-					verifiedClient: member,
+					verifiedClient: 't01004',
 					dataCapAmount: allocation,
 					removalProposalID: [0],
 				}; // removalProposalID BRAK

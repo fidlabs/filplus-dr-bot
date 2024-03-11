@@ -3,10 +3,21 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {NodeGlobalsPolyfillPlugin} from '@esbuild-plugins/node-globals-polyfill';
 import wasm from 'vite-plugin-wasm';
+import {nodePolyfills} from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [react(), wasm()],
+	plugins: [
+		react(),
+		wasm(),
+		nodePolyfills({
+			globals: {
+				Buffer: true, // can also be 'build', 'dev', or false
+				global: true,
+				process: true,
+			},
+		}),
+	],
 	resolve: {
 		alias: {
 			'/src': path.resolve(__dirname, 'src'),
@@ -18,12 +29,7 @@ export default defineConfig({
 			define: {
 				global: 'globalThis',
 			},
-			plugins: [
-				NodeGlobalsPolyfillPlugin({
-					buffer: true,
-					process: true,
-				}),
-			],
+			plugins: [],
 		},
 	},
 	server: {
