@@ -93,14 +93,10 @@ const useLedgerWallet = () => {
 
 	const signRemoveDataCap = async (
 		ledgerApp: FilecoinApp, // refactor
-		message: SignRemoveDataCapMessage = {
-			verifiedClient,
-			dataCapAmount,
-			removalProposalID: [0],
-		},
+		message: SignRemoveDataCapMessage,
 		indexAccount: number = 1,
 	) => {
-		// const verifyAPI = createVerifyAPI();
+		const verifyAPI = createVerifyAPI(sign, getAccounts);
 		const messageWithClientId: SignRemoveDataCapMessage = {
 			...message,
 			verifiedClient: await verifyAPI.actorAddress(message.verifiedClient),

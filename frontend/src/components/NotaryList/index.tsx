@@ -2,13 +2,12 @@ import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import {commentIssueWithSign, getDataCaps} from '../../api';
 import {DataCap} from '../../types/DataCap';
-import {signRemoveDataCap} from '../../functions/signRemoveDataCap';
 import {SignRemoveDataCapMessage} from '../../types/TransactionRaw';
 import useLedgerWallet from '../../hooks/useLedgerWallet';
 
 const NotaryList = () => {
 	const [dataCaps, setDataCaps] = useState<DataCap[] | null>(null);
-	const {ledgerApp} = useLedgerWallet();
+	const {ledgerApp, signRemoveDataCap} = useLedgerWallet();
 
 	useEffect(() => {
 		getDataCaps().then((response) => {

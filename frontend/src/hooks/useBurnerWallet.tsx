@@ -2,8 +2,11 @@ import {useState} from 'react';
 import {ConfigLotusNode} from '../types/ConfigLotusNode';
 import {createVerifyAPI} from '../functions/verifyApi';
 import signer from '@zondax/filecoin-signing-tools/js';
-import {transactionSign, transactionSerialize} from '@zondax/filecoin-signing-tools/js';
-import { LotusMessage } from '../types/TransactionRaw';
+import {
+	transactionSign,
+	transactionSerialize,
+} from '@zondax/filecoin-signing-tools/js';
+import {LotusMessage} from '../types/TransactionRaw';
 
 const mnemonicDefault =
 	'robot matrix ribbon husband feature attitude noise imitate matrix shaft resist cliff lab now gold menu grocery truth deliver camp about stand consider number';
@@ -20,7 +23,7 @@ const useBurnerWallet = () => {
 	const loadWallet = async (networkIndex: number) => {
 		setNetworkIndex(networkIndex);
 		setLotusNode(lotusNode);
-		setApi(createVerifyAPI());
+		// setApi(createVerifyAPI());
 	};
 
 	const importSeed = async (seedphrase: string) => {
