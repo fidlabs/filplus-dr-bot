@@ -19,6 +19,7 @@ const owner = process.env.OWNER ?? 'OWNER';
 const repo = process.env.REPO ?? 'REPO';
 const govOwner = process.env.GOV_OWNER ?? 'govOwner';
 const govRepo = process.env.GOV_REPO ?? 'govRepo';
+const monitoringInterval = Number(process.env.MONITORING_INTERVAL) || 3600;
 
 // Start the Express server
 
@@ -64,7 +65,7 @@ const govRepo = process.env.GOV_REPO ?? 'govRepo';
 		}
 
 		await client.disconnect();
-		await delay(1000 * 3600);
+		await delay(monitoringInterval * 1000);
 	}
 })();
 
