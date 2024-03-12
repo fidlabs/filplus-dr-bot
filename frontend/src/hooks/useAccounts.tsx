@@ -5,20 +5,16 @@ import {FilecoinApp} from '@zondax/ledger-filecoin';
 
 const getAccounts = async (ledgerApp: FilecoinApp) => {
 	const paths = [];
-
-	for (let i = 0; i < import.meta.env.VITE_SOME_KEY; i += 1) {
-		paths.push(
-			`m/44'/${import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS}'/0'/0/${i}`,
-		);
+	for (let i = 0; i < import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS; i += 1) {
+		paths.push(`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${i}`);
 	}
-
 	const accounts = await mapSeries(paths, async (path: any) => {
 		const returnLoad = await ledgerApp.getAddressAndPubKey(path);
+		console.log(returnLoad)
 		const {addrString} = handleErrors(returnLoad);
 		return addrString;
 	});
-	
-	return accounts
+	return accounts;
 };
 
 const useAccounts = (ledgerApp: FilecoinApp) => {
@@ -36,8 +32,13 @@ const useAccounts = (ledgerApp: FilecoinApp) => {
 			setAccounts(accounts);
 		});
 	}, [ledgerApp]);
-
-	return {indexAddress, accounts, setIndexAddress, selectAccount, activeAccount};
+	return {
+		indexAddress,
+		accounts,
+		setIndexAddress,
+		selectAccount,
+		activeAccount,
+	};
 };
 
 export default useAccounts;

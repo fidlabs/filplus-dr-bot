@@ -1,6 +1,5 @@
 import {useState} from 'react';
 import {ConfigLotusNode} from '../types/ConfigLotusNode';
-import {createVerifyAPI} from '../functions/verifyApi';
 import {
 	transactionSign,
 	transactionSerialize,

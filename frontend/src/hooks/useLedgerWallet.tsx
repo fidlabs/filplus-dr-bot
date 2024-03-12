@@ -85,14 +85,23 @@ const useLedgerWallet = () => {
 		message: SignRemoveDataCapMessage,
 		indexAccount: number = 1,
 	) => {
-		const verifyAPI = createVerifyAPI(sign, getAccounts);
+		const verifyAPI = await createVerifyAPI(sign, getAccounts);
+
+		// const datacap = '100'; // Example datacap
+		// const ext = 'filecoin'; // Example extension for Filecoin datacap
+		// const bytes = ByteConverter.convert(
+		// 	new UnitValue(parseInt(datacap), ext),
+		// 	Byte,
+		// );
+
 		const messageWithClientId: SignRemoveDataCapMessage = {
 			...message,
+			dataCapAmount: Number(message.dataCapAmount),
 			verifiedClient: await verifyAPI.actorAddress(message.verifiedClient),
 		};
 		const encodedMessage =
 			verifyAPI.encodeRemoveDataCapParameters(messageWithClientId);
-		const messageBlob = Buffer.from(encodedMessage.toString(), 'hex');
+		const messageBlob = Buffer.from(encodedMessage, 'hex');
 		const signedMessage = await ledgerApp.signRemoveDataCap(
 			`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount}`,
 			messageBlob,
@@ -105,7 +114,7 @@ const useLedgerWallet = () => {
 			ts_der,
 			signedMessage,
 		});
-		return `01${ts_compact}`;
+		return signedMessage;
 	};
 
 	type SubmitRemoveData = {

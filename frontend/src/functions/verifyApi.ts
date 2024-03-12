@@ -14,9 +14,10 @@ export const createVerifyAPI = (
 	return new VerifyAPI(
 		VerifyAPI.browserProvider('http://localhost:1235/proxy/rpc/v0', {
 			token:
-				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Zw9-PRz4WxJIfi3NGDY8uLC3zqS-zQPccPe7OqK2Cgk',
+				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.H31c0REPmCroxwDNEGaSBkmLr25GpIqOI6bNXFYN7bg',
 		}),
 		{sign, getAccounts},
+		true,
 		// this.lotusNode.name !== 'Mainnet' // if node != Mainnet => testnet = true
 	);
 };

@@ -21,13 +21,12 @@ const NotaryList = () => {
 		signData: SignRemoveDataCapMessage,
 		issue: string,
 	) => {
-		const signRemoveData = await sign(signData);
+		const signRemoveData = await signRemoveDataCap(signData);
 		if (signRemoveData) {
 			console.log(signRemoveData)
 			await commentIssueWithSign(issue, signRemoveData.Signature);
 		}
 	};
-	console.log(dataCaps);
 	if (!dataCaps) return;
 	return (
 		<div>

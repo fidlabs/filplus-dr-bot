@@ -16,7 +16,7 @@ function Content() {
 	const {ledgerApp} = useContext(DeviceContext);
 	const {accounts, selectAccount, activeAccount} = useAccounts(ledgerApp);
 	const [listState, setListState] = useState<ListState | null>(null);
-
+	console.log(accounts)
 	return (
 		<div>
 			<Button onClick={() => setListState(ListState.NOTARY)}>
