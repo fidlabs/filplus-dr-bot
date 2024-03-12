@@ -23,7 +23,7 @@ function make(testnet) {
 	function addressAsBytes(str) {
 		const nfs = address.newFromString(str);
 		const res = Buffer.from(nfs.str, 'binary');
-		return res;
+		return res.buffer;
 	}
 
 	/*
@@ -248,8 +248,8 @@ function make(testnet) {
 	}
 
 	function encodeBig(bn) {
-		if (bn.toString() === '0') return Buffer.from('');
-		return Buffer.from('00' + pad(bn.toString(16)), 'hex');
+		if (bn.toString() === '0') return Buffer.from('').buffer;
+		return Buffer.from('00' + pad(bn.toString(16)), 'hex').buffer;
 	}
 
 	function encodeBigKey(bn) {
