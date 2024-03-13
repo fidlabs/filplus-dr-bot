@@ -153,43 +153,7 @@ function make(testnet) {
 	async function signTx(client, indexAccount, walletContext, tx) {
 		const head = await client.chainHead();
 		const address = (await walletContext.getAccounts())[indexAccount];
-		console.log('addr', address);
-		// const state = await client.stateGetActor(address, head.Cids)
-		// let nonce = state.Nonce
 		const nonce = await client.mpoolGetNonce(address);
-
-		console.log('nonce', nonce);
-		// console.log(nonce)
-		// const pending = await client.mpoolPending(head.Cids)
-		// for (const { Message: tx } of pending) {
-		//   if (tx.From === address && tx.Nonce + 1 > nonce) {
-		//     nonce = tx.Nonce + 1
-		//   }
-		// }
-		/*
-    console.log('Start estimnate gas...')
-    const msg = await iterateGas(client, { ...tx, from: address, nonce })
-    console.log('Estimate gas: ' + msg)
-
-    return walletContext.sign(msg, indexAccount)
-    */
-
-		// OLD CODE WITH 0.1FIL HARDCODED MAXFEE
-		const estimation_msg: LotusMessage = {
-			To: tx.to,
-			From: address,
-			Nonce: nonce,
-			Value: tx.value.toString() || '0',
-			GasFeeCap: '0',
-			GasPremium: '0',
-			GasLimit: tx.gas || 0,
-			Method: tx.method,
-			Params: '',
-		};
-		console.log('head', head.Cids);
-
-		console.log('tx', tx);
-
 		const filecoinMessage: LotusMessage = {
 			To: tx.to,
 			From: address,
@@ -202,32 +166,11 @@ function make(testnet) {
 			Params: Buffer.from(tx.params, 'hex').toString('base64'),
 		};
 
-		console.log(estimation_msg);
-		// const res = await client.gasEstimateMessageGas(
-		// 	estimation_msg,
-		// 	{MaxFee: '0'},
-		// 	head.Cids,
-		// );
-		// console.log(res);
-
-		const msg = {
-			To: tx.to,
-			From: address,
-			Nonce: 0, //todo znalesx
-			Value: tx.value.toString() || '0',
-			GasFeeCap: '0',
-			GasPremium: '0',
-			GasLimit: 0,
-			Method: tx.method,
-			Params: tx.params,
-		};
-
 		const serializedMessage = transactionSerialize(filecoinMessage);
 
-		console.log('wallet', walletContext);
-
+		// FIXME add handleErrors
 		const signature = await walletContext.sign(
-			`m/44'/${lotusNodeCode}'/0'/0/0`,
+			`m/44'/${lotusNodeCode}'/0'/0/${indexAccount}`,
 			Buffer.from(serializedMessage, 'hex'),
 		);
 
@@ -467,13 +410,13 @@ function make(testnet) {
 
 	function encode(schema, data) {
 		if (schema === 'address') {
-			return addressAsBytes(data);
+			return addressAsBytes(data).buffer;
 		}
 		if (schema === 'bigint') {
-			return encodeBig(data);
+			return encodeBig(data).buffer;
 		}
 		if (schema === 'bigint-signed') {
-			return encodeBigKey(data);
+			return encodeBigKey(data).buffer;
 		}
 		if (schema === 'bigint-key') {
 			return encodeBigKey(data);
@@ -482,7 +425,7 @@ function make(testnet) {
 			return parseInt(data);
 		}
 		if (schema === 'int' || schema === 'buffer') {
-			return data;
+			return data.buffer ?? data;
 		}
 		if (schema === 'cid') {
 			return new cbor.Tagged(42, Buffer.concat([Buffer.from([0]), data.bytes]));

@@ -6,14 +6,13 @@ export const generateSignedMessage = async (
 ) => {
 	return {
 		Message: {
-			Version: 0,
 			From: filecoinMessage.From,
 			GasLimit: filecoinMessage.GasLimit,
 			GasFeeCap: filecoinMessage.GasFeeCap,
 			GasPremium: filecoinMessage.GasPremium,
 			Method: filecoinMessage.Method,
 			Nonce: filecoinMessage.Nonce,
-			Params: Buffer.from(filecoinMessage.Params, 'hex').toString('base64'),
+			Params: filecoinMessage.Params,
 			To: filecoinMessage.To,
 			Value: filecoinMessage.Value,
 		},
