@@ -3,7 +3,7 @@ import {ConfigLotusNode} from '../types/ConfigLotusNode';
 import {
 	transactionSign,
 	transactionSerialize,
-} from '../../libs/filecoin-signing-tools/js';
+} from '../../libs/filecoin-signing-tools/js/src';
 import {LotusMessage} from '../types/TransactionRaw';
 import {keyDerive} from '../../filecoin-signing-tools';
 

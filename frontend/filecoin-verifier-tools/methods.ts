@@ -1,5 +1,5 @@
 //@ts-nocheck
-import * as signer from '../../libs/filecoin-signing-tools/js';
+import * as signer from '../libs/filecoin-signing-tools/js/src/utils';
 import cbor from 'cbor';
 import * as hamt from './hamt';
 import blake from 'blakejs';

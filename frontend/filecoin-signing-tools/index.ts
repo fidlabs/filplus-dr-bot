@@ -1,5 +1,5 @@
 import ExtendedKey from "../libs/filecoin-signing-tools/js/src/extendedkey";
-import {keyDeriveFromSeed} from '../libs/filecoin-signing-tools/js';
+import {keyDeriveFromSeed} from '../libs/filecoin-signing-tools/js/src';
 import * as bip39 from 'bip39';
 
 export function keyDerive(

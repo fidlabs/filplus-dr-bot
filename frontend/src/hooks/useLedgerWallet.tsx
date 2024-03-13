@@ -2,7 +2,7 @@ import {useContext, useState} from 'react';
 import FilecoinApp from '@zondax/ledger-filecoin';
 import {ConfigLotusNode} from '../types/ConfigLotusNode';
 import {mapSeries} from 'bluebird';
-import {transactionSerialize} from '../../libs/filecoin-signing-tools/js';
+import {transactionSerialize} from '../../libs/filecoin-signing-tools/js/src';
 import {LotusMessage, SignRemoveDataCapMessage} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
