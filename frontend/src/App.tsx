@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import {useContext, useState} from 'react';
 import NotaryList from './components/NotaryList';
 import RootList from './components/RootList';
-import useAccounts from './hooks/useAccounts';
+// import useAccounts from './hooks/useAccounts';
 import {DeviceContext} from './components/Context/DeviceContext';
 
 enum ListState {
@@ -13,10 +13,9 @@ enum ListState {
 }
 
 function Content() {
-	const {ledgerApp} = useContext(DeviceContext);
-	const {accounts, selectAccount, activeAccount} = useAccounts(ledgerApp);
+	// const {ledgerApp} = useContext(DeviceContext);
+	// const {accounts, selectAccount, activeAccount} = useAccounts(ledgerApp);
 	const [listState, setListState] = useState<ListState | null>(null);
-	console.log(accounts)
 	return (
 		<div>
 			<Button onClick={() => setListState(ListState.NOTARY)}>
@@ -25,7 +24,7 @@ function Content() {
 			<Button onClick={() => setListState(ListState.ROOT)}>
 				Choose Root Key Holder List
 			</Button>
-			{accounts && (
+			{/* {accounts && (
 				<select
 					value={activeAccount}
 					onChange={(e) => selectAccount(parseInt(e.target.value))}
@@ -34,7 +33,7 @@ function Content() {
 						<option value={account}>{account}</option>
 					))}
 				</select>
-			)}
+			)} */}
 			<div>
 				{listState === ListState.NOTARY && <NotaryList />}
 				{listState === ListState.ROOT && <RootList />}

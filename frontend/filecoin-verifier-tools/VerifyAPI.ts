@@ -94,7 +94,6 @@ export class VerifyAPI {
 		const prefix__hex_encoded = Buffer.from(
 			SIGNATURE_DOMAIN_SEPARATION_REMOVE_DATACAP,
 		).toString('hex');
-		debugger;
 		const encoded_params_buffer = this.methods.encode(
 			this.methods.RemoveDataCapProposal,
 			orderedProposalParams,

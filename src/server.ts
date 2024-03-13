@@ -1,9 +1,9 @@
 import express, {type Application, type Request, type Response} from 'express';
 import bodyParser from 'body-parser';
-import {getDataCaps} from './serverFunctions/datacaps.js';
+import {getDataCaps, getSignatures, postSignatures} from './serverFunctions/datacaps.js';
 import {postIssue} from './serverFunctions/postIssue.js';
-import { makeStale } from './serverFunctions/makeStale.js';
-import { Signature } from './types/signature.js';
+import {makeStale} from './serverFunctions/makeStale.js';
+import {Signature} from './types/signature.js';
 
 const errorHandler = (handleFunction: () => void, res: Response) => {
 	try {
@@ -27,6 +27,23 @@ app.use((req, res, next) => {
 	next();
 });
 
+app.post('/add-signature', async (req: Request, res) => {
+	errorHandler(async () => {
+		const body = req.body as {issueNumber: number; signature: Signature};
+		await postSignatures(body, res);
+	}, res);
+});
+
+// app.post('/get-signatures-key-holder', async (req: Request, res) => {
+// 	errorHandler(async () => {
+// 		const dataCaps = await getDataCaps();
+// 		dataCaps.filter((item) => {
+// 			item.
+// 		})
+// 		await getSignatures(body, res);
+// 	}, res);
+// });
+
 app.post('/post-issue', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {issueNumber: number; signature: Signature};
@@ -44,7 +61,10 @@ if (process.env.DEBUG_STALE_ISSUES === 'true') {
 }
 
 app.get('/datacaps', async (req: Request, res: Response) => {
-	errorHandler(async () => getDataCaps(res), res);
+	errorHandler(async () => {
+		const dataCaps = await getDataCaps();
+		res.json({dataCaps});
+	}, res);
 });
 
 const port = process.env.PORT ?? 3000;

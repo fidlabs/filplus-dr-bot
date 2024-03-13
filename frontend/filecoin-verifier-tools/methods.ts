@@ -7,6 +7,9 @@ import * as address from '@glif/filecoin-address';
 import {CID} from 'multiformats/cid';
 import {identity} from 'multiformats/hashes/identity';
 import * as rawFormat from 'multiformats/codecs/raw';
+import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
+import {LotusMessage} from '../types/TransactionRaw';
+import {generateSignedMessage} from '../src/functions/generateSignMessage';
 
 function cborEncode(...obj) {
 	const enc = new cbor.Encoder();
@@ -23,7 +26,7 @@ function make(testnet) {
 	function addressAsBytes(str) {
 		const nfs = address.newFromString(str);
 		const res = Buffer.from(nfs.str, 'binary');
-		return res.buffer;
+		return res;
 	}
 
 	/*
@@ -146,14 +149,16 @@ function make(testnet) {
     throw saved_error
   }
   */
-
+	const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
 	async function signTx(client, indexAccount, walletContext, tx) {
 		const head = await client.chainHead();
 		const address = (await walletContext.getAccounts())[indexAccount];
-
+		console.log('addr', address);
 		// const state = await client.stateGetActor(address, head.Cids)
 		// let nonce = state.Nonce
 		const nonce = await client.mpoolGetNonce(address);
+
+		console.log('nonce', nonce);
 		// console.log(nonce)
 		// const pending = await client.mpoolPending(head.Cids)
 		// for (const { Message: tx } of pending) {
@@ -170,7 +175,7 @@ function make(testnet) {
     */
 
 		// OLD CODE WITH 0.1FIL HARDCODED MAXFEE
-		const estimation_msg = {
+		const estimation_msg: LotusMessage = {
 			To: tx.to,
 			From: address,
 			Nonce: nonce,
@@ -179,37 +184,63 @@ function make(testnet) {
 			GasPremium: '0',
 			GasLimit: tx.gas || 0,
 			Method: tx.method,
-			Params: tx.params.toString('base64'),
+			Params: '',
+		};
+		console.log('head', head.Cids);
+
+		console.log('tx', tx);
+
+		const filecoinMessage: LotusMessage = {
+			To: tx.to,
+			From: address,
+			Nonce: nonce,
+			Value: tx.value.toString() || '0',
+			GasLimit: 10000000,
+			GasFeeCap: '10000000',
+			GasPremium: '10000000',
+			Method: tx.method,
+			Params: Buffer.from(tx.params, 'hex').toString('base64'),
 		};
 
 		console.log(estimation_msg);
-		const res = await client.gasEstimateMessageGas(
-			estimation_msg,
-			{MaxFee: '100000000000000000'},
-			head.Cids,
-		);
-		console.log(res);
+		// const res = await client.gasEstimateMessageGas(
+		// 	estimation_msg,
+		// 	{MaxFee: '0'},
+		// 	head.Cids,
+		// );
+		// console.log(res);
 
 		const msg = {
-			to: tx.to,
-			from: address,
-			nonce,
-			value: tx.value.toString() || '0',
-			gasfeecap: res.GasFeeCap,
-			gaspremium: res.GasPremium,
-			gaslimit: res.GasLimit,
-			method: tx.method,
-			params: tx.params,
+			To: tx.to,
+			From: address,
+			Nonce: 0, //todo znalesx
+			Value: tx.value.toString() || '0',
+			GasFeeCap: '0',
+			GasPremium: '0',
+			GasLimit: 0,
+			Method: tx.method,
+			Params: tx.params,
 		};
 
-		return walletContext.sign(msg, indexAccount);
+		const serializedMessage = transactionSerialize(filecoinMessage);
+
+		console.log('wallet', walletContext);
+
+		const signature = await walletContext.sign(
+			`m/44'/${lotusNodeCode}'/0'/0/0`,
+			Buffer.from(serializedMessage, 'hex'),
+		);
+
+		return generateSignedMessage(filecoinMessage, signature);
 	}
 
 	// returns tx hash
 	async function sendTx(client, indexAccount, walletContext, obj) {
 		const tx = await signTx(client, indexAccount, walletContext, obj);
+		console.log('tx2', tx);
 		console.log('going to send', tx);
-		return await client.mpoolPush(JSON.parse(tx));
+
+		return await client.mpoolPush(tx);
 	}
 
 	async function getReceipt(client, id) {
@@ -248,8 +279,8 @@ function make(testnet) {
 	}
 
 	function encodeBig(bn) {
-		if (bn.toString() === '0') return Buffer.from('').buffer;
-		return Buffer.from('00' + pad(bn.toString(16)), 'hex').buffer;
+		if (bn.toString() === '0') return Buffer.from('');
+		return Buffer.from('00' + pad(bn.toString(16)), 'hex');
 	}
 
 	function encodeBigKey(bn) {

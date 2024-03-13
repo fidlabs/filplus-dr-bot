@@ -23,4 +23,9 @@ const commentIssueWithSign = async (
 	await fetchWithErrorHandling<void>(`${apiUrl}/post-issue`, config);
 };
 
-export {getDataCaps, commentIssueWithSign};
+const addSignatures = async (signature: any) => {
+	const config = defaultConfigPostData({...signature});
+	await fetchWithErrorHandling<void>(`${apiUrl}/add-signature`, config);
+};
+
+export {getDataCaps, commentIssueWithSign, addSignatures};

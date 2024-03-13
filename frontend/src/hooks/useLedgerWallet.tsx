@@ -8,6 +8,7 @@ import {createVerifyAPI} from '../functions/verifyApi';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
+import {addSignatures} from '../api';
 
 const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
 const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
@@ -42,7 +43,7 @@ const useLedgerWallet = () => {
 	const getAccounts = async (nStart = 0) => {
 		const paths = [];
 
-		for (let i = nStart; i < numberOfWalletAccounts; i += 1) {
+		for (let i = nStart; i < parseInt(numberOfWalletAccounts); i += 1) {
 			paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
 		}
 
@@ -51,7 +52,6 @@ const useLedgerWallet = () => {
 			const {addrString} = handleErrors(returnLoad);
 			return addrString;
 		});
-
 		return accounts;
 	};
 
@@ -80,19 +80,83 @@ const useLedgerWallet = () => {
 		);
 		return await generateSignedMessage(filecoinMessage, signedMessage);
 	};
+	
 
 	const signRemoveDataCap = async (
 		message: SignRemoveDataCapMessage,
-		indexAccount: number = 1,
+		indexAccount: number = 0,
 	) => {
-		const verifyAPI = await createVerifyAPI(sign, getAccounts);
+		const verifyAPI = createVerifyAPI(sign, getAccounts);
+		const rkAccounts = await getAccounts();
 
-		// const datacap = '100'; // Example datacap
-		// const ext = 'filecoin'; // Example extension for Filecoin datacap
-		// const bytes = ByteConverter.convert(
-		// 	new UnitValue(parseInt(datacap), ext),
-		// 	Byte,
-		// );
+		ledgerApp.getAccounts = async () => {
+			const paths = [];
+
+			for (let i = 0; i < parseInt(numberOfWalletAccounts); i += 1) {
+				paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
+			}
+
+			const accounts = await mapSeries(paths, async (path) => {
+				const returnLoad = await ledgerApp.getAddressAndPubKey(path);
+				const {addrString} = handleErrors(returnLoad);
+				return addrString;
+			});
+			return accounts;
+		};
+
+		const tx = await verifyAPI.proposeRemoveDataCap(
+			't01004',
+			'1000',
+			't01007',
+			'016c416bee5b9a2bb3e2fa0a75111fcb9f23d9f0666f598074642b0c54a9086a6861cd9de539ed28644eeb2f7a4923a8545056c2efda90e23b8a22401e19a5ce1600',
+			't01008',
+			'01a72a8ed012d0e99adfbc4e51c284c1faaadd37904a2017db19617925318c09c46baa983a9f246483adc26be116bdf83fcb4b38b9101bd6863af5257797bde71800',
+			0,
+			ledgerApp,
+		);
+		console.log(tx);
+		return;
+		const datacap = '100'; // Example datacap
+		const ext = 'filecoin'; // Example extension for Filecoin datacap
+		const bytes = ByteConverter.convert(
+			new UnitValue(parseInt(datacap), ext),
+			Byte,
+		);
+
+		for (let i = 2; i < 4; i++) {
+			const returnLoad = await ledgerApp.getAddressAndPubKey(
+				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${i}`,
+			);
+			console.log(returnLoad);
+			console.log(await verifyAPI.actorAddress(returnLoad.addrString));
+			const messageWithClientId: SignRemoveDataCapMessage = {
+				...message,
+				dataCapAmount: Number(message.dataCapAmount),
+				verifiedClient: await verifyAPI.actorAddress(message.verifiedClient),
+			};
+			console.log(messageWithClientId);
+			const encodedMessage =
+				verifyAPI.encodeRemoveDataCapParameters(messageWithClientId);
+			const messageBlob = Buffer.from(encodedMessage, 'hex');
+			const signedMessage = await ledgerApp.signRemoveDataCap(
+				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${i}`,
+				messageBlob,
+			);
+
+			const ts_compact = signedMessage.signature_compact.toString('hex');
+
+			const signedMessageData = {
+				ts_compact: `01${ts_compact}`,
+				clientAddress: 'f1x5bd4bafvlawsz5e7otja66y27lfdwsbvh2vxdi',
+				verified: messageWithClientId.verifiedClient,
+				isSignature1: !!message.signature1,
+			};
+			console.log(signedMessageData);
+		}
+
+		const returnLoad = await ledgerApp.getAddressAndPubKey(
+			`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${i}`,
+		);
 
 		const messageWithClientId: SignRemoveDataCapMessage = {
 			...message,
@@ -106,15 +170,17 @@ const useLedgerWallet = () => {
 			`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount}`,
 			messageBlob,
 		);
-		console.log('signedMessage', signedMessage);
+
 		const ts_compact = signedMessage.signature_compact.toString('hex');
 		const ts_der = signedMessage.signature_der.toString('hex');
-		console.log({
-			ts_compact,
-			ts_der,
-			signedMessage,
-		});
-		return signedMessage;
+
+		const signedMessageData = {
+			ts_compact: `01${ts_compact}`,
+			clientAddress: 'f1x5bd4bafvlawsz5e7otja66y27lfdwsbvh2vxdi',
+			verified: messageWithClientId.verifiedClient,
+			isSignature1: !!message.signature1,
+		};
+		return signedMessageData;
 	};
 
 	type SubmitRemoveData = {
