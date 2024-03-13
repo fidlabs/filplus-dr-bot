@@ -1,5 +1,5 @@
-import {ExtendedKey} from "@zondax/filecoin-signing-tools";
-import {keyDeriveFromSeed} from '@zondax/filecoin-signing-tools/js';
+import ExtendedKey from "../libs/filecoin-signing-tools/js/src/extendedkey";
+import {keyDeriveFromSeed} from '../libs/filecoin-signing-tools/js';
 import * as bip39 from 'bip39';
 
 export function keyDerive(
