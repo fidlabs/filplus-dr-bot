@@ -14,7 +14,9 @@ export const getDataCaps = async () => {
 	const dataCaps = await Promise.all(
 		members.map(async (member) => {
 			const datacap = await client.hGetAll(member);
-			return {...datacap, member};
+			if (!(datacap.signature1 && datacap.signature2)) {
+				return {...datacap, member};
+			}
 		}),
 	);
 
@@ -23,35 +25,41 @@ export const getDataCaps = async () => {
 };
 
 type Body = {
-	issueNumber: number;
-	signature: Signature;
+	ts_compact: string;
+	clientAddress: string;
+	verified: string;
 };
 
-export const postSignatures = async (body: any, res: Response) => {
+export const postSignatures = async (body: Body, res: Response) => {
 	const client = await createClient({url: redisUrl}).connect();
-	const {ts_compact, clientAddress} = body;
-	console.log(body);
+	const {ts_compact: tsCompact, clientAddress, verified} = body;
+	const isSignature1 = await client.hGet(clientAddress, 'signature1');
 
-	await client.hSet(clientAddress, {signature1: ts_compact});
+	const field = isSignature1 ? 'signature1' : 'signature2';
+	const value = tsCompact;
 
-	// Res.json({dataCaps});
+	const notaryField = isSignature1 ? 'notary1' : 'notary2';
+	const notaryValue = verified;
+
+	await client.hSet(clientAddress, {
+		[field]: value,
+		[notaryField]: notaryValue,
+	});
+
 	await client.disconnect();
 };
 
-export const getSignatures = async (body: Body, res: Response) => {
+export const getClientWithBothSignatures = async () => {
 	const client = await createClient({url: redisUrl}).connect();
-	const {issueNumber} = body;
-	console.log(issueNumber);
-
-	// client.hGet(clientId);
-
-	// const dataCaps = await Promise.all(
-	// 	members.map(async (member) => {
-	// 		const datacap = await client.hGetAll(member);
-	// 		return {...datacap, member};
-	// 	}),
-	// );
-
-	// res.json({dataCaps});
+	const members = await client.sMembers(redisDatacapAddressesSet);
+	const clientWithBothSignatures = await Promise.all(
+		members.map(async (member) => {
+			const filecoinClient = await client.hGetAll(member);
+			if (filecoinClient.signature1 && filecoinClient.signature2) {
+				return {...filecoinClient, member};
+			}
+		}),
+	);
 	await client.disconnect();
+	return clientWithBothSignatures;
 };
