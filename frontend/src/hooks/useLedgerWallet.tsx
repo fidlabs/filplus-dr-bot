@@ -124,6 +124,7 @@ const useLedgerWallet = () => {
 		const receipt = await verifyAPI.stateWaitMessage(txCid);
 		const msigTxId = receipt.ReturnDec.TxnID;
 		console.log("msig tx id", msigTxId)
+		console.log('All pendings', await verifyAPI.pendingRootTransactions());
 
 		console.log("Now approving as second root key")
 		const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
@@ -140,7 +141,6 @@ const useLedgerWallet = () => {
 			}
 		};
 		const walletIndex = 1;
-		console.log(msigTx, await verifyAPI.pendingRootTransactions());
 		const approveId = await verifyAPI.approvePending('f080', msigTx, walletIndex, ledgerApp);
 		console.log(approveId);
 		console.log('stateWaitMessage for', approveId);
