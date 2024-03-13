@@ -103,6 +103,23 @@ export class VerifyAPI {
 		return txBlob;
 	}
 
+	encodeRemoveDataCapTx(
+		clientToRemoveDcFrom: string,
+		datacap: string,
+		verifier1: string,
+		signature1: string,
+		verifier2: string,
+		signature2: string,
+	) {
+		return this.methods.verifreg.removeVerifiedClientDataCap(
+			clientToRemoveDcFrom,
+			datacap,
+			{verifier: verifier1, signature: signature1},
+			{verifier: verifier2, signature: signature2},
+		);
+
+	}
+
 	async proposeRemoveDataCap(
 		clientToRemoveDcFrom: string,
 		datacap: string,
@@ -114,14 +131,16 @@ export class VerifyAPI {
 		wallet: any,
 		{gas} = {gas: 0},
 	) {
-		const method: any = methods.mainnet;
-		const removeDatacapRequest = method.verifreg.removeVerifiedClientDataCap(
+		const removeDatacapRequest = this.encodeRemoveDataCapTx(
 			clientToRemoveDcFrom,
 			datacap,
-			{verifier: verifier1, signature: signature1},
-			{verifier: verifier2, signature: signature2},
+			verifier1,
+			signature1,
+			verifier2,
+			signature2
 		);
 		const tx = this.methods.rootkey.propose(removeDatacapRequest);
+		console.log('Debug this: ', tx.params.toString('hex'));
 		const res = await this.methods.sendTx(
 			this.client,
 			indexAccount,
