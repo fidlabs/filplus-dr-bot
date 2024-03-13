@@ -104,17 +104,35 @@ const useLedgerWallet = () => {
 			return accounts;
 		};
 
-		const tx = await verifyAPI.proposeRemoveDataCap(
+		const notary1 = 't01007';
+		const sig1 = '016c416bee5b9a2bb3e2fa0a75111fcb9f23d9f0666f598074642b0c54a9086a6861cd9de539ed28644eeb2f7a4923a8545056c2efda90e23b8a22401e19a5ce1600';
+		const notary2 = 't01008';
+		const sig2 = '01a72a8ed012d0e99adfbc4e51c284c1faaadd37904a2017db19617925318c09c46baa983a9f246483adc26be116bdf83fcb4b38b9101bd6863af5257797bde71800';
+		const txId = await verifyAPI.proposeRemoveDataCap(
 			't01004',
 			'1000',
-			't01007',
-			'016c416bee5b9a2bb3e2fa0a75111fcb9f23d9f0666f598074642b0c54a9086a6861cd9de539ed28644eeb2f7a4923a8545056c2efda90e23b8a22401e19a5ce1600',
-			't01008',
-			'01a72a8ed012d0e99adfbc4e51c284c1faaadd37904a2017db19617925318c09c46baa983a9f246483adc26be116bdf83fcb4b38b9101bd6863af5257797bde71800',
+			notary1,
+			sig1,
+			notary2,
+			sig2,
 			0,
 			ledgerApp,
 		);
-		console.log(tx);
+		console.log("Waiting 10s for confirmation...");
+		await new Promise((resolve) => setTimeout(resolve, 10000));
+		console.log("Now approving as second root key")
+		const pendings = await verifyAPI.pendingRootTransactions();
+		console.log(pendings);
+		const msigTx = pendings.find(({ parsed: { params, name }}) => (
+			name === "removeVerifiedClientDataCap" &&
+			params.dataCapAmountToRemove === 4096n &&
+			params.verifiedClientToRemove === "t01004" &&
+			params.verifierRequest1.verifier === notary1 &&
+			params.verifierRequest2.verifier === notary2
+		))
+		const walletIndex = 1;
+		const approveId = await verifyAPI.approvePending('f080', msigTx, walletIndex, ledgerApp);
+		console.log(approveId);
 		return;
 		const datacap = '100'; // Example datacap
 		const ext = 'filecoin'; // Example extension for Filecoin datacap

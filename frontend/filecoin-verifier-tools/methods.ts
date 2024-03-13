@@ -159,9 +159,9 @@ function make(testnet) {
 			From: address,
 			Nonce: nonce,
 			Value: tx.value.toString() || '0',
-			GasLimit: 10000000,
-			GasFeeCap: '10000000',
-			GasPremium: '10000000',
+			GasLimit: 20000000, // FIXME should estimate
+			GasFeeCap: '10000000', // FIXME ?? cli uses much lower value
+			GasPremium: '10000000', // FIXME ?? cli uses much lower value
 			Method: tx.method,
 			Params: Buffer.from(tx.params, 'hex').toString('base64'),
 		};
@@ -436,7 +436,7 @@ function make(testnet) {
 		if (schema.type === 'hash') {
 			const hashData = cborEncode(encode(schema.input, data));
 			const hash = blake.blake2bHex(hashData, null, 32);
-			return Buffer.from(hash, 'hex');
+			return Buffer.from(hash, 'hex').buffer;
 		}
 		if (schema instanceof Array) {
 			if (schema[0] === 'list') {
