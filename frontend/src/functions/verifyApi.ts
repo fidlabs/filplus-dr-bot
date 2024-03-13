@@ -7,14 +7,17 @@ type Sign = (
 	indexAccount?: number,
 ) => Promise<string>;
 
+const apiToken = import.meta.env.VITE_VERIFY_API_TOKEN
+const verifyApiUrl = import.meta.env.VITE_VERIFY_API_URL
+
 export const createVerifyAPI = (
 	sign: Sign,
 	getAccounts: (nStart?: number) => Promise<any[]>,
 ): VerifyAPI => {
 	return new VerifyAPI(
-		VerifyAPI.browserProvider('http://localhost:1235/proxy/rpc/v0', {
+		VerifyAPI.browserProvider(verifyApiUrl, {
 			token:
-				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.H31c0REPmCroxwDNEGaSBkmLr25GpIqOI6bNXFYN7bg',
+			apiToken,
 		}),
 		{sign, getAccounts},
 		true,
