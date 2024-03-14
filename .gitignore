@@ -129,3 +129,4 @@ dist
 .pnp.*
 
 github_app_private_key.pem
+certs/
