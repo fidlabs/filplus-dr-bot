@@ -52,8 +52,8 @@ export const postSignatures = async (body: Body, res: Response) => {
 
 type BodyRootKey = {
 	clientAddress: string;
-	txFrom: string;
-	msigTxId: string;
+	txFrom?: string;
+	msigTxId?: string;
 };
 
 export const postRootKeySignatures = async (
@@ -62,12 +62,17 @@ export const postRootKeySignatures = async (
 ) => {
 	const client = await createClient({url: redisUrl}).connect();
 	const {msigTxId, clientAddress, txFrom} = body;
-	const isSignature1 = await client.hGet(clientAddress, 'rootKeySignature1');
-
-	await client.hSet(clientAddress, {
-		msigTxId,
-		txFrom,
-	});
+	const isTxFrom = await client.hGet(clientAddress, 'txFrom');
+	if (isTxFrom) {
+		await client.hSet(clientAddress, {
+			isFinished: true,
+		});
+	} else {
+		await client.hSet(clientAddress, {
+			msigTxId,
+			txFrom,
+		});
+	}
 
 	await client.disconnect();
 };
@@ -78,7 +83,8 @@ export const getClientWithBothSignatures = async () => {
 	const clientWithBothSignatures = await Promise.all(
 		members.map(async (member) => {
 			const filecoinClient = await client.hGetAll(member);
-			if (filecoinClient.signature1 && filecoinClient.signature2) {
+			const checkIfSignature = filecoinClient.signature1 && filecoinClient.signature2;
+			if (checkIfSignature && !filecoinClient.isFinished) {
 				return {...filecoinClient, member};
 			}
 		}),

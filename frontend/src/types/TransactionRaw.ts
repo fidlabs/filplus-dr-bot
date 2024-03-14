@@ -12,7 +12,7 @@ export type LotusMessage = {
 
 export type SignRemoveDataCapMessage = {
 	verifiedClient: string; // idAddress
-	dataCapAmount: string;
+	dataCapAmount: number;
 	removalProposalID: number[];
 	signature1?: string
 };

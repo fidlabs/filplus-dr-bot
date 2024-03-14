@@ -40,6 +40,7 @@ app.post('/add-signature', async (req: Request, res) => {
 			notaryAddres: string;
 		};
 		await postSignatures(body, res);
+		res.json({message: 'Signature added successfully'});
 	}, res);
 });
 
@@ -61,10 +62,11 @@ app.post('/add-root-key-signature', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {
 			clientAddress: string;
-			txFrom: string;
-			msigTxId: string;
+			txFrom?: string;
+			msigTxId?: string;
 		};
 		await postRootKeySignatures(body, res);
+		res.json({message: 'Signature root key added successfully'});
 	}, res);
 });
 

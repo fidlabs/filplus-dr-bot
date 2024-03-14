@@ -37,7 +37,7 @@ const handleErrors = (response: any) => {
 
 const useLedgerWallet = () => {
 	const {ledgerApp, indexAccount, currentAccount} = useContext(DeviceContext);
-	const {changeIsLoadingState} = useContext(LoadingContext);
+	const {setisLoadingTrue, setisLoadingFalse} = useContext(LoadingContext);
 	const getAccounts = async (nStart = 0) => {
 		const paths = [];
 
@@ -80,22 +80,21 @@ const useLedgerWallet = () => {
 	};
 
 	const signRemoveDataCap = async (message: SignRemoveDataCapMessage) => {
+		setisLoadingTrue();
 		const verifyAPI = createVerifyAPI(sign, getAccounts);
 		const messageWithClientId: SignRemoveDataCapMessage = {
 			...message,
-			dataCapAmount: message.dataCapAmount,
-			verifiedClient:
-				't01004' || (await verifyAPI.actorAddress(message.verifiedClient)),
+			dataCapAmount: (message.dataCapAmount).toString(16),
+			verifiedClient: await verifyAPI.actorAddress(message.verifiedClient),
 		};
 		const encodedMessage =
 			verifyAPI.encodeRemoveDataCapParameters(messageWithClientId);
 		const messageBlob = Buffer.from(encodedMessage, 'hex');
-		changeIsLoadingState();
+
 		const signedMessage = await ledgerApp.signRemoveDataCap(
 			`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount}`,
 			messageBlob,
 		);
-		changeIsLoadingState();
 
 		const ts_compact = signedMessage.signature_compact.toString('hex');
 
@@ -105,6 +104,7 @@ const useLedgerWallet = () => {
 			notaryAddres: await verifyAPI.actorAddress(currentAccount),
 			isSignature1: !!message.signature1,
 		};
+		setisLoadingFalse();
 		return signedMessageData;
 	};
 
@@ -120,7 +120,7 @@ const useLedgerWallet = () => {
 			txFrom,
 		} = dataToSignRootKey;
 		try {
-			changeIsLoadingState();
+			setisLoadingTrue();
 			const verifyAPI = createVerifyAPI(sign, getAccounts);
 
 			ledgerApp.getAccounts = async () => {
@@ -139,9 +139,9 @@ const useLedgerWallet = () => {
 			};
 			const client = await verifyAPI.actorAddress(clientAddress);
 			const amountToRemove = allocation.toString(16);
-			changeIsLoadingState();
 			if (!msigTxId) {
 				// needs to be hex string
+				verifyAPI.encodeRemoveDataCapParameters({verifiedClient: client, dataCapAmount: amountToRemove, removalProposalID: [0]});
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
 					amountToRemove,
@@ -165,14 +165,14 @@ const useLedgerWallet = () => {
 				// console.log('Now approving as second root key');
 			} else {
 				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
-					client,
+					await verifyAPI.actorAddress(clientAddress),
 					amountToRemove,
 					notary1,
 					sig1,
 					notary2,
 					sig2,
 				);
-
+					console.log(removeDatacapRequest.params.toString('hex'))
 				const msigTx = {
 					id: msigTxId,
 					tx: {
@@ -187,14 +187,23 @@ const useLedgerWallet = () => {
 					indexAccount,
 					ledgerApp,
 				);
+				// isFinished dodac tu zapytanie do backendu
+				const responseData = await verifyAPI.stateWaitMessage(approveId)
+
+				if(responseData?.ReturnDec?.Applied === true && responseData?.ReturnDec?.Code === 16){
+					await addRootKeySignatures({
+						isFinished: true,
+					});
+				}
 				console.log(approveId);
 				console.log('stateWaitMessage for', approveId);
-				console.log(await verifyAPI.stateWaitMessage(approveId));
-				changeIsLoadingState();
+				console.log();
 			}
 		} catch (e: any) {
 			console.error('error', e.stack);
-			changeIsLoadingState();
+			setisLoadingFalse();
+		} finally{
+			setisLoadingFalse();
 		}
 	};
 
