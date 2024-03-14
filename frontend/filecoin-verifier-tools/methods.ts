@@ -7,7 +7,7 @@ import * as address from '@glif/filecoin-address';
 import {CID} from 'multiformats/cid';
 import {identity} from 'multiformats/hashes/identity';
 import * as rawFormat from 'multiformats/codecs/raw';
-import {transactionSerialize} from '../../libs/filecoin-signing-tools/js/src';
+import {transactionSerialize} from '../libs/filecoin-signing-tools/js/src';
 import {LotusMessage} from '../types/TransactionRaw';
 import {generateSignedMessage} from '../src/functions/generateSignMessage';
 
