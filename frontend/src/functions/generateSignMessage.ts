@@ -4,7 +4,7 @@ export const generateSignedMessage = async (
 	filecoinMessage: LotusMessage,
 	signedMessage: any,
 ) => {
-	return JSON.stringify({
+	return {
 		Message: {
 			From: filecoinMessage.From,
 			GasLimit: filecoinMessage.GasLimit,
@@ -12,7 +12,7 @@ export const generateSignedMessage = async (
 			GasPremium: filecoinMessage.GasPremium,
 			Method: filecoinMessage.Method,
 			Nonce: filecoinMessage.Nonce,
-			Params: Buffer.from(filecoinMessage.Params, 'hex').toString('base64'),
+			Params: filecoinMessage.Params,
 			To: filecoinMessage.To,
 			Value: filecoinMessage.Value,
 		},
@@ -21,5 +21,5 @@ export const generateSignedMessage = async (
 			Type: 1,
 			//Type: signedMessage.signature.type,
 		},
-	});
+	};
 };

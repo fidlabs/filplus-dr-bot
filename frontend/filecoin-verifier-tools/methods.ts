@@ -7,6 +7,9 @@ import * as address from '@glif/filecoin-address';
 import {CID} from 'multiformats/cid';
 import {identity} from 'multiformats/hashes/identity';
 import * as rawFormat from 'multiformats/codecs/raw';
+import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
+import {LotusMessage} from '../types/TransactionRaw';
+import {generateSignedMessage} from '../src/functions/generateSignMessage';
 
 function cborEncode(...obj) {
 	const enc = new cbor.Encoder();
@@ -23,7 +26,7 @@ function make(testnet) {
 	function addressAsBytes(str) {
 		const nfs = address.newFromString(str);
 		const res = Buffer.from(nfs.str, 'binary');
-		return res.buffer;
+		return res;
 	}
 
 	/*
@@ -146,70 +149,41 @@ function make(testnet) {
     throw saved_error
   }
   */
-
+	const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
 	async function signTx(client, indexAccount, walletContext, tx) {
 		const head = await client.chainHead();
 		const address = (await walletContext.getAccounts())[indexAccount];
-
-		// const state = await client.stateGetActor(address, head.Cids)
-		// let nonce = state.Nonce
 		const nonce = await client.mpoolGetNonce(address);
-		// console.log(nonce)
-		// const pending = await client.mpoolPending(head.Cids)
-		// for (const { Message: tx } of pending) {
-		//   if (tx.From === address && tx.Nonce + 1 > nonce) {
-		//     nonce = tx.Nonce + 1
-		//   }
-		// }
-		/*
-    console.log('Start estimnate gas...')
-    const msg = await iterateGas(client, { ...tx, from: address, nonce })
-    console.log('Estimate gas: ' + msg)
-
-    return walletContext.sign(msg, indexAccount)
-    */
-
-		// OLD CODE WITH 0.1FIL HARDCODED MAXFEE
-		const estimation_msg = {
+		const filecoinMessage: LotusMessage = {
 			To: tx.to,
 			From: address,
 			Nonce: nonce,
 			Value: tx.value.toString() || '0',
-			GasFeeCap: '0',
-			GasPremium: '0',
-			GasLimit: tx.gas || 0,
+			GasLimit: 20000000, // FIXME should estimate
+			GasFeeCap: '10000000', // FIXME ?? cli uses much lower value
+			GasPremium: '10000000', // FIXME ?? cli uses much lower value
 			Method: tx.method,
-			Params: tx.params.toString('base64'),
+			Params: Buffer.from(tx.params, 'hex').toString('base64'),
 		};
 
-		console.log(estimation_msg);
-		const res = await client.gasEstimateMessageGas(
-			estimation_msg,
-			{MaxFee: '100000000000000000'},
-			head.Cids,
+		const serializedMessage = transactionSerialize(filecoinMessage);
+
+		// FIXME add handleErrors
+		const signature = await walletContext.sign(
+			`m/44'/${lotusNodeCode}'/0'/0/${indexAccount}`,
+			Buffer.from(serializedMessage, 'hex'),
 		);
-		console.log(res);
 
-		const msg = {
-			to: tx.to,
-			from: address,
-			nonce,
-			value: tx.value.toString() || '0',
-			gasfeecap: res.GasFeeCap,
-			gaspremium: res.GasPremium,
-			gaslimit: res.GasLimit,
-			method: tx.method,
-			params: tx.params,
-		};
-
-		return walletContext.sign(msg, indexAccount);
+		return generateSignedMessage(filecoinMessage, signature);
 	}
 
 	// returns tx hash
 	async function sendTx(client, indexAccount, walletContext, obj) {
 		const tx = await signTx(client, indexAccount, walletContext, obj);
+		console.log('tx2', tx);
 		console.log('going to send', tx);
-		return await client.mpoolPush(JSON.parse(tx));
+
+		return await client.mpoolPush(tx);
 	}
 
 	async function getReceipt(client, id) {
@@ -248,8 +222,8 @@ function make(testnet) {
 	}
 
 	function encodeBig(bn) {
-		if (bn.toString() === '0') return Buffer.from('').buffer;
-		return Buffer.from('00' + pad(bn.toString(16)), 'hex').buffer;
+		if (bn.toString() === '0') return Buffer.from('');
+		return Buffer.from('00' + pad(bn.toString(16)), 'hex');
 	}
 
 	function encodeBigKey(bn) {
@@ -436,13 +410,13 @@ function make(testnet) {
 
 	function encode(schema, data) {
 		if (schema === 'address') {
-			return addressAsBytes(data);
+			return addressAsBytes(data).buffer;
 		}
 		if (schema === 'bigint') {
-			return encodeBig(data);
+			return encodeBig(data).buffer;
 		}
 		if (schema === 'bigint-signed') {
-			return encodeBigKey(data);
+			return encodeBigKey(data).buffer;
 		}
 		if (schema === 'bigint-key') {
 			return encodeBigKey(data);
@@ -451,7 +425,7 @@ function make(testnet) {
 			return parseInt(data);
 		}
 		if (schema === 'int' || schema === 'buffer') {
-			return data;
+			return data.buffer ?? data;
 		}
 		if (schema === 'cid') {
 			return new cbor.Tagged(42, Buffer.concat([Buffer.from([0]), data.bytes]));
@@ -462,7 +436,7 @@ function make(testnet) {
 		if (schema.type === 'hash') {
 			const hashData = cborEncode(encode(schema.input, data));
 			const hash = blake.blake2bHex(hashData, null, 32);
-			return Buffer.from(hash, 'hex');
+			return Buffer.from(hash, 'hex').buffer;
 		}
 		if (schema instanceof Array) {
 			if (schema[0] === 'list') {

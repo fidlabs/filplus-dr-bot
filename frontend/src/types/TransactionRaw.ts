@@ -14,4 +14,5 @@ export type SignRemoveDataCapMessage = {
 	verifiedClient: string; // idAddress
 	dataCapAmount: string;
 	removalProposalID: number[];
+	signature1?: string
 };
