@@ -105,12 +105,20 @@ async function indexAllocations(
 	let addresses: string[] = [];
 	for (const request of approvedRequests) {
 		if (request.address) {
-			const response = await axios.post('https://api.node.glif.io/', {
-				jsonrpc: '2.0',
-				method: 'Filecoin.StateVerifiedClientStatus',
-				params: [`${request.address}`, null],
-				id: `${request.id}`,
-			});
+			let response;
+			try {
+				response = await axios.post(process.env.GLIF_URL!, {
+					headers: {Authorization: 'Bearer ' + process.env.GLIF_TOKEN},
+					jsonrpc: '2.0',
+					method: 'Filecoin.StateVerifiedClientStatus',
+					params: [`${request.address}`, null],
+					id: `${request.id}`,
+				});
+			} catch (e) {
+				console.error(e, 'Faild to getState for address:', request.address);
+				continue;
+			}
+
 			const allocation = Number(response.data.result);
 			const cachedAllocation = Number(
 				await client.hGet(request.address, 'allocation'),
