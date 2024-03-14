@@ -34,14 +34,40 @@ services:
     depends_on:
     - redis
     command: npm run server
-
-  # frontend:
-  #   build: ./frontend    
-  #   restart: always
-  #   ports:
-  #     - '8000:8000'     
-  #   environment:
-  #     - API_URL=http://localhost:3000    
-  #   depends_on:
-  #     - server
-  #   command: npm run dev 
+  # Nginx setup
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:1.5
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    restart: always
+  letsencrypt-nginx-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt-nginx-companion
+    volumes:
+      - ./certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    volumes_from: 
+      - nginx-proxy
+    restart: always
+    depends_on:
+      - nginx-proxy
+    
+  frontend:
+     build: ./frontend    
+     restart: always
+     ports:
+       - '8888:80'
+     environment:
+       - VIRTUAL_HOST= ${FRONTEND_HOST}
+       - API_URL=http://localhost:3000    
+     depends_on:
+       - nginx-proxy
+       - letsencrypt-nginx-companion
+       - server 
