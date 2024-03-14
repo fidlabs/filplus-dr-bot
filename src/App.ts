@@ -46,7 +46,6 @@ const monitoringInterval = Number(process.env.MONITORING_INTERVAL) || 3600;
 			govOwner,
 			govRepo,
 		);
-
 		const approvedRequests = await getApprovedRequests(requestsOctokit);
 		if (approvedRequests.length > 0) {
 			const addresses = await indexAllocations(client, approvedRequests);

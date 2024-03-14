@@ -14,44 +14,78 @@ export const getDataCaps = async () => {
 	const dataCaps = await Promise.all(
 		members.map(async (member) => {
 			const datacap = await client.hGetAll(member);
-			return {...datacap, member};
+			if (!(datacap.signature1 && datacap.signature2)) {
+				return {...datacap, member};
+			}
 		}),
 	);
+	const filteredData = dataCaps.filter((item) => item);
 
 	await client.disconnect();
-	return dataCaps;
+	return filteredData;
 };
 
 type Body = {
-	issueNumber: number;
-	signature: Signature;
+	ts_compact: string;
+	clientAddress: string;
+	notaryAddres: string;
 };
 
-export const postSignatures = async (body: any, res: Response) => {
+export const postSignatures = async (body: Body, res: Response) => {
 	const client = await createClient({url: redisUrl}).connect();
-	const {ts_compact, clientAddress} = body;
-	console.log(body);
+	const {ts_compact: tsCompact, clientAddress, notaryAddres} = body;
+	const isSignature1 = await client.hGet(clientAddress, 'signature1');
 
-	await client.hSet(clientAddress, {signature1: ts_compact});
+	const field = isSignature1 ? 'signature2' : 'signature1';
+	const value = tsCompact;
 
-	// Res.json({dataCaps});
+	const notaryField = isSignature1 ? 'notary2' : 'notary1';
+	const notaryValue = notaryAddres;
+
+	await client.hSet(clientAddress, {
+		[field]: value,
+		[notaryField]: notaryValue,
+	});
+
 	await client.disconnect();
 };
 
-export const getSignatures = async (body: Body, res: Response) => {
+type BodyRootKey = {
+	clientAddress: string;
+	txFrom: string;
+	msigTxId: string;
+};
+
+export const postRootKeySignatures = async (
+	body: BodyRootKey,
+	res: Response,
+) => {
 	const client = await createClient({url: redisUrl}).connect();
-	const {issueNumber} = body;
-	console.log(issueNumber);
+	const {msigTxId, clientAddress, txFrom} = body;
+	const isSignature1 = await client.hGet(clientAddress, 'rootKeySignature1');
 
-	// client.hGet(clientId);
+	await client.hSet(clientAddress, {
+		msigTxId,
+		txFrom,
+	});
 
-	// const dataCaps = await Promise.all(
-	// 	members.map(async (member) => {
-	// 		const datacap = await client.hGetAll(member);
-	// 		return {...datacap, member};
-	// 	}),
-	// );
-
-	// res.json({dataCaps});
 	await client.disconnect();
+};
+
+export const getClientWithBothSignatures = async () => {
+	const client = await createClient({url: redisUrl}).connect();
+	const members = await client.sMembers(redisDatacapAddressesSet);
+	const clientWithBothSignatures = await Promise.all(
+		members.map(async (member) => {
+			const filecoinClient = await client.hGetAll(member);
+			if (filecoinClient.signature1 && filecoinClient.signature2) {
+				return {...filecoinClient, member};
+			}
+		}),
+	);
+	const filteredClientWithBothSignatures = clientWithBothSignatures.filter(
+		(item) => item,
+	);
+	await client.disconnect();
+	return filteredClientWithBothSignatures;
 };

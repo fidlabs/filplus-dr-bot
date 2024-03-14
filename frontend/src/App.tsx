@@ -13,8 +13,6 @@ enum ListState {
 }
 
 function Content() {
-	// const {ledgerApp} = useContext(DeviceContext);
-	// const {accounts, selectAccount, activeAccount} = useAccounts(ledgerApp);
 	const [listState, setListState] = useState<ListState | null>(null);
 	return (
 		<div>
@@ -24,16 +22,7 @@ function Content() {
 			<Button onClick={() => setListState(ListState.ROOT)}>
 				Choose Root Key Holder List
 			</Button>
-			{/* {accounts && (
-				<select
-					value={activeAccount}
-					onChange={(e) => selectAccount(parseInt(e.target.value))}
-				>
-					{accounts.map((account) => (
-						<option value={account}>{account}</option>
-					))}
-				</select>
-			)} */}
+
 			<div>
 				{listState === ListState.NOTARY && <NotaryList />}
 				{listState === ListState.ROOT && <RootList />}

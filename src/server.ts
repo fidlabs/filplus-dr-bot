@@ -1,9 +1,14 @@
 import express, {type Application, type Request, type Response} from 'express';
 import bodyParser from 'body-parser';
-import {getDataCaps, getSignatures, postSignatures} from './serverFunctions/datacaps.js';
+import {
+	getClientWithBothSignatures,
+	getDataCaps,
+	postSignatures,
+	postRootKeySignatures,
+} from './serverFunctions/datacaps.js';
 import {postIssue} from './serverFunctions/postIssue.js';
 import {makeStale} from './serverFunctions/makeStale.js';
-import {Signature} from './types/signature.js';
+import {type Signature} from './types/signature.js';
 
 const errorHandler = (handleFunction: () => void, res: Response) => {
 	try {
@@ -29,25 +34,37 @@ app.use((req, res, next) => {
 
 app.post('/add-signature', async (req: Request, res) => {
 	errorHandler(async () => {
-		const body = req.body as {issueNumber: number; signature: Signature};
+		const body = req.body as {
+			ts_compact: string;
+			clientAddress: string;
+			notaryAddres: string;
+		};
 		await postSignatures(body, res);
 	}, res);
 });
 
-// app.post('/get-signatures-key-holder', async (req: Request, res) => {
-// 	errorHandler(async () => {
-// 		const dataCaps = await getDataCaps();
-// 		dataCaps.filter((item) => {
-// 			item.
-// 		})
-// 		await getSignatures(body, res);
-// 	}, res);
-// });
+app.get('/notary-signatures', async (req: Request, res) => {
+	errorHandler(async () => {
+		const clientWithBothSignatures = await getClientWithBothSignatures();
+		res.json({clientWithBothSignatures});
+	}, res);
+});
 
 app.post('/post-issue', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {issueNumber: number; signature: Signature};
 		await postIssue(body);
+	}, res);
+});
+
+app.post('/add-root-key-signature', async (req: Request, res) => {
+	errorHandler(async () => {
+		const body = req.body as {
+			clientAddress: string;
+			txFrom: string;
+			msigTxId: string;
+		};
+		await postRootKeySignatures(body, res);
 	}, res);
 });
 

@@ -10,7 +10,6 @@ const getAccounts = async (ledgerApp: FilecoinApp) => {
 	}
 	const accounts = await mapSeries(paths, async (path: any) => {
 		const returnLoad = await ledgerApp.getAddressAndPubKey(path);
-		console.log(returnLoad)
 		const {addrString} = handleErrors(returnLoad);
 		return addrString;
 	});

@@ -15,6 +15,9 @@ const defaultConfigPostData = (body: object) => ({
 const getDataCaps = async () =>
 	fetchWithErrorHandling<{dataCaps: DataCap[]}>(`${apiUrl}/datacaps`);
 
+	const getNotarySignatures= async () =>
+	fetchWithErrorHandling<{clientWithBothSignatures: DataCap[]}>(`${apiUrl}/notary-signatures`);
+
 const commentIssueWithSign = async (
 	issueNumber: string,
 	signature: Signature,
@@ -28,4 +31,9 @@ const addSignatures = async (signature: any) => {
 	await fetchWithErrorHandling<void>(`${apiUrl}/add-signature`, config);
 };
 
-export {getDataCaps, commentIssueWithSign, addSignatures};
+const addRootKeySignatures = async (signature: any) => {
+	const config = defaultConfigPostData({...signature});
+	await fetchWithErrorHandling<void>(`${apiUrl}/add-root-key-signature`, config);
+};
+
+export {getDataCaps, commentIssueWithSign, addSignatures, getNotarySignatures, addRootKeySignatures};

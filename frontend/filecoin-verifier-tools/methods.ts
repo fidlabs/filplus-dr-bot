@@ -159,7 +159,7 @@ function make(testnet) {
 			From: address,
 			Nonce: nonce,
 			Value: tx.value.toString() || '0',
-			GasLimit: 20000000, // FIXME should estimate
+			GasLimit: 2000000000, // FIXME should estimate
 			GasFeeCap: '10000000', // FIXME ?? cli uses much lower value
 			GasPremium: '10000000', // FIXME ?? cli uses much lower value
 			Method: tx.method,

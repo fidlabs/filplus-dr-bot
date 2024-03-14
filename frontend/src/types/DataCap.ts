@@ -3,5 +3,10 @@ export type DataCap = {
   date: string,
   issue: string,
   stale: string,
-  member: string
+  member: string,
+  notary1?: string,
+  notary2?: string,
+  signature1?: string,
+  signature2?: string,
+  msigTx?: string,
 }
