@@ -3,13 +3,11 @@ services:
   redis:
     image: redis:latest
     restart: always
-    ports:
-      - '6379:6379'
     volumes:
-      - /path/to/local/dаta:/root/redis
-      - /path/to/local/redis.conf:/usr/local/etc/redis/redis.conf
+      - redisdata:/root/redis
+      - redisconf:/usr/local/etc/redis/redis.conf
     environment:
-      - REDIS_PASSWORD=my-password
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
 
   monitor:
@@ -60,12 +58,13 @@ services:
   frontend:
      build: ./frontend    
      restart: always
-     ports:
-       - '8888:80'
      environment:
        - VIRTUAL_HOST= ${FRONTEND_HOST}
+       - LETSENCRYPT_HOST= ${FRONTEND_HOST}
+       - LETSENCRYPT_EMAIL= 'admin@${FRONTEND_HOST}'
        - API_URL=http://localhost:3000    
      depends_on:
-       - nginx-proxy
-       - letsencrypt-nginx-companion
        - server 
+volumes:
+  redisdata:
+  redisconf:
