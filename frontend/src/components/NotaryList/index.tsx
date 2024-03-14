@@ -10,7 +10,6 @@ const NotaryList = () => {
 	const [dataCaps, setDataCaps] = useState<DataCap[] | null>(null);
 	const {signRemoveDataCap} = useLedgerWallet();
 	const {sign} = useBurnerWallet();
-	console.log(dataCaps)
 	useEffect(() => {
 		getDataCaps().then((response) => {
 			setDataCaps(response.dataCaps);
@@ -19,7 +18,6 @@ const NotaryList = () => {
 
 	const onSignRemoveDataCap = async (signData: SignRemoveDataCapMessage) => {
 		const signRemoveData = await signRemoveDataCap(signData);
-		debugger;
 		await addSignatures(signRemoveData);
 	};
 	if (!dataCaps) return;

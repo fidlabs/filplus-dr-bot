@@ -1,9 +1,10 @@
-import {createContext, useState} from 'react';
+import {createContext, useContext, useState} from 'react';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import FilecoinApp from '@zondax/ledger-filecoin';
 import {mapSeries} from 'bluebird';
 import {handleErrors} from '../../functions/handleErrors';
-import {DeviceContextType, DeviceProviderProps} from './DeviceTypes';
+import {DeviceContextType, ReactChildren} from './ContextTypes';
+import {LoadingContext} from './LoaderContext';
 
 const DeviceContext = createContext<DeviceContextType>({
 	ledgerApp: null,
@@ -14,12 +15,13 @@ const DeviceContext = createContext<DeviceContextType>({
 	accounts: null,
 	changeAccount: () => {},
 });
-const DeviceProvider = ({children}: DeviceProviderProps) => {
+const DeviceProvider = ({children}: ReactChildren) => {
+	const {changeIsLoadingState} = useContext(LoadingContext);
 	const [ledgerApp, setLedgerApp] = useState<FilecoinApp | null>(null);
 	const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 	const [indexAccount, setIndexAccount] = useState<number>(0);
 	const [accounts, setAccounts] = useState<string[] | null>(null);
-
+	console.log(currentAccount);
 	const getAccounts = async (ledgerApp: FilecoinApp) => {
 		const paths = [];
 		for (
@@ -29,11 +31,12 @@ const DeviceProvider = ({children}: DeviceProviderProps) => {
 		) {
 			paths.push(`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${i}`);
 		}
-		const accounts = await mapSeries(paths, async (path: string) => {
+		const accountsPromises = await mapSeries(paths, async (path: string) => {
 			const returnLoad = await ledgerApp.getAddressAndPubKey(path);
 			const {addrString} = handleErrors(returnLoad);
 			return addrString;
 		});
+		const accounts = await Promise.all(accountsPromises);
 		return accounts;
 	};
 
@@ -42,19 +45,20 @@ const DeviceProvider = ({children}: DeviceProviderProps) => {
 			const transport = await TransportWebUSB.create();
 			const app = new FilecoinApp(transport);
 			setLedgerApp(app);
+			changeIsLoadingState();
 			const accounts = await getAccounts(app);
-			console.log(accounts)
-			setAccounts(accounts)
+			setAccounts(accounts);
+			changeIsLoadingState();
 			setCurrentAccount(accounts[indexAccount]);
 		} catch (error) {
 			console.error('Error loading data from Ledger device:', error);
 		}
 	};
 
-	const changeAccount = (account: string, index : number) => {
+	const changeAccount = (account: string, index: number) => {
 		setCurrentAccount(account);
 		setIndexAccount(index);
-	}
+	};
 
 	return (
 		<DeviceContext.Provider

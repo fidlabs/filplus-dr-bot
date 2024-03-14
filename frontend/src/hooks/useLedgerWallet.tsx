@@ -8,7 +8,9 @@ import {createVerifyAPI} from '../functions/verifyApi';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
-import {addSignatures} from '../api';
+import {addRootKeySignatures, addSignatures} from '../api';
+import {LoadingContext} from '../components/Context/LoaderContext';
+import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
 
 const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
 const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
@@ -34,12 +36,8 @@ const handleErrors = (response: any) => {
 };
 
 const useLedgerWallet = () => {
-	const {ledgerApp, indexAccount} = useContext(DeviceContext);
-	const [ledgerBusy, setLedgerBusy] = useState<boolean>(false);
-	const [api, setApi] = useState<any>(null);
-	const [lotusNode, setLotusNode] = useState<ConfigLotusNode | null>(null);
-	const [networkIndex, setNetworkIndex] = useState<number>(0);
-
+	const {ledgerApp, indexAccount, currentAccount} = useContext(DeviceContext);
+	const {changeIsLoadingState} = useContext(LoadingContext);
 	const getAccounts = async (nStart = 0) => {
 		const paths = [];
 
@@ -68,7 +66,7 @@ const useLedgerWallet = () => {
 			Params: '',
 		},
 		// co z indexAccount?
-		indexAccount: number = 0,
+		indexAccount: number,
 	) => {
 		const serializedMessage = transactionSerialize(filecoinMessage);
 		//await this.ledgerApp.sign(`m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`, Buffer.from(serializedMessage, 'hex'))
@@ -92,45 +90,46 @@ const useLedgerWallet = () => {
 		const encodedMessage =
 			verifyAPI.encodeRemoveDataCapParameters(messageWithClientId);
 		const messageBlob = Buffer.from(encodedMessage, 'hex');
+		changeIsLoadingState();
 		const signedMessage = await ledgerApp.signRemoveDataCap(
 			`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount}`,
 			messageBlob,
 		);
+		changeIsLoadingState();
 
 		const ts_compact = signedMessage.signature_compact.toString('hex');
 
 		const signedMessageData = {
 			ts_compact: `01${ts_compact}`,
 			clientAddress: message.verifiedClient,
-			verified: messageWithClientId.verifiedClient,
+			notaryAddres: await verifyAPI.actorAddress(currentAccount),
 			isSignature1: !!message.signature1,
 		};
 		return signedMessageData;
 	};
 
-	type SubmitRemoveData = {
-		issueAddress: string;
-		dataCapBytes: string;
-		notary1: string;
-		signature1: string;
-		notary2: string;
-		signature2: string;
-		isProposal: boolean;
-		proposalId: string;
-	};
-
-	const submitRemoveDataCap = async () => {
+	const submitRemoveDataCap = async (dataToSignRootKey: SubmitRemoveData) => {
+		const {
+			allocation,
+			notary1,
+			sig1,
+			notary2,
+			sig2,
+			clientAddress,
+			msigTxId,
+			txFrom,
+		} = dataToSignRootKey;
 		try {
+			changeIsLoadingState();
 			const verifyAPI = createVerifyAPI(sign, getAccounts);
-			const rkAccounts = await getAccounts();
-	
+
 			ledgerApp.getAccounts = async () => {
 				const paths = [];
-	
+
 				for (let i = 0; i < parseInt(numberOfWalletAccounts); i += 1) {
 					paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
 				}
-	
+
 				const accounts = await mapSeries(paths, async (path) => {
 					const returnLoad = await ledgerApp.getAddressAndPubKey(path);
 					const {addrString} = handleErrors(returnLoad);
@@ -138,59 +137,68 @@ const useLedgerWallet = () => {
 				});
 				return accounts;
 			};
-	
-			const client = 't01004';
-			const amountToRemove = (1234).toString(16); // needs to be hex string
-			const notary1 = 't01007';
-			const sig1 = '016c416bee5b9a2bb3e2fa0a75111fcb9f23d9f0666f598074642b0c54a9086a6861cd9de539ed28644eeb2f7a4923a8545056c2efda90e23b8a22401e19a5ce1600';
-			const notary2 = 't01008';
-			const sig2 = '01a72a8ed012d0e99adfbc4e51c284c1faaadd37904a2017db19617925318c09c46baa983a9f246483adc26be116bdf83fcb4b38b9101bd6863af5257797bde71800';
-			const txCid = await verifyAPI.proposeRemoveDataCap(
-				client,
-				amountToRemove,
-				notary1,
-				sig1,
-				notary2,
-				sig2,
-				0,
-				ledgerApp,
-			);
-			console.log('stateWaitMessage for', txCid);
-			const receipt = await verifyAPI.stateWaitMessage(txCid);
-			const msigTxId = receipt.ReturnDec.TxnID;
-			console.log("msig tx id", msigTxId)
-			console.log('All pendings', await verifyAPI.pendingRootTransactions());
-	
-			console.log("Now approving as second root key")
-			const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
-				client,
-				amountToRemove,
-				notary1, sig1,
-				notary2, sig2,
-			);
-			const msigTx = {
-				id: msigTxId,
-				tx: {
-					from: 'f01002', // ID of account that sent proposeRemoveDataCap - a.k.a. first root key holder to sign
-					...removeDatacapRequest,
-				}
-			};
-			const walletIndex = 1;
-			const approveId = await verifyAPI.approvePending('f080', msigTx, walletIndex, ledgerApp);
-			console.log(approveId);
-			console.log('stateWaitMessage for', approveId);
-			console.log(await verifyAPI.stateWaitMessage(approveId));
+			const client = await verifyAPI.actorAddress(clientAddress);
+			const amountToRemove = allocation.toString(16);
+			changeIsLoadingState();
+			if (!msigTxId) {
+				// needs to be hex string
+				const txCid = await verifyAPI.proposeRemoveDataCap(
+					client,
+					amountToRemove,
+					notary1,
+					sig1,
+					notary2,
+					sig2,
+					indexAccount,
+					ledgerApp,
+				);
+				const receipt = await verifyAPI.stateWaitMessage(txCid);
+				const msigTxId = receipt.ReturnDec.TxnID;
+				await addRootKeySignatures({
+					msigTxId,
+					clientAddress,
+					txFrom: await verifyAPI.actorAddress(currentAccount),
+				});
+				// console.log('msig tx id', msigTxId);
+				// console.log('All pendings', await verifyAPI.pendingRootTransactions());
+
+				// console.log('Now approving as second root key');
+			} else {
+				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
+					client,
+					amountToRemove,
+					notary1,
+					sig1,
+					notary2,
+					sig2,
+				);
+
+				const msigTx = {
+					id: msigTxId,
+					tx: {
+						from: txFrom, // ID of account that sent proposeRemoveDataCap - a.k.a. first root key holder to sign
+						...removeDatacapRequest,
+					},
+				};
+
+				const approveId = await verifyAPI.approvePending(
+					'f080',
+					msigTx,
+					indexAccount,
+					ledgerApp,
+				);
+				console.log(approveId);
+				console.log('stateWaitMessage for', approveId);
+				console.log(await verifyAPI.stateWaitMessage(approveId));
+				changeIsLoadingState();
+			}
 		} catch (e: any) {
 			console.error('error', e.stack);
+			changeIsLoadingState();
 		}
 	};
 
 	return {
-		ledgerBusy,
-		api,
-		lotusNode,
-		networkIndex,
-		ledgerApp,
 		getAccounts,
 		signRemoveDataCap,
 		sign,

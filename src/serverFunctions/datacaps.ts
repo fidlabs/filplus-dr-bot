@@ -19,31 +19,54 @@ export const getDataCaps = async () => {
 			}
 		}),
 	);
+	const filteredData = dataCaps.filter((item) => item);
 
 	await client.disconnect();
-	return dataCaps;
+	return filteredData;
 };
 
 type Body = {
 	ts_compact: string;
 	clientAddress: string;
-	verified: string;
+	notaryAddres: string;
 };
 
 export const postSignatures = async (body: Body, res: Response) => {
 	const client = await createClient({url: redisUrl}).connect();
-	const {ts_compact: tsCompact, clientAddress, verified} = body;
+	const {ts_compact: tsCompact, clientAddress, notaryAddres} = body;
 	const isSignature1 = await client.hGet(clientAddress, 'signature1');
 
-	const field = isSignature1 ? 'signature1' : 'signature2';
+	const field = isSignature1 ? 'signature2' : 'signature1';
 	const value = tsCompact;
 
-	const notaryField = isSignature1 ? 'notary1' : 'notary2';
-	const notaryValue = verified;
+	const notaryField = isSignature1 ? 'notary2' : 'notary1';
+	const notaryValue = notaryAddres;
 
 	await client.hSet(clientAddress, {
 		[field]: value,
 		[notaryField]: notaryValue,
+	});
+
+	await client.disconnect();
+};
+
+type BodyRootKey = {
+	clientAddress: string;
+	txFrom: string;
+	msigTxId: string;
+};
+
+export const postRootKeySignatures = async (
+	body: BodyRootKey,
+	res: Response,
+) => {
+	const client = await createClient({url: redisUrl}).connect();
+	const {msigTxId, clientAddress, txFrom} = body;
+	const isSignature1 = await client.hGet(clientAddress, 'rootKeySignature1');
+
+	await client.hSet(clientAddress, {
+		msigTxId,
+		txFrom,
 	});
 
 	await client.disconnect();
@@ -60,6 +83,9 @@ export const getClientWithBothSignatures = async () => {
 			}
 		}),
 	);
+	const filteredClientWithBothSignatures = clientWithBothSignatures.filter(
+		(item) => item,
+	);
 	await client.disconnect();
-	return clientWithBothSignatures;
+	return filteredClientWithBothSignatures;
 };

@@ -11,6 +11,11 @@ export type DeviceContextType = {
 	changeAccount: (account: string, index: number) => void;
 };
 
-export type DeviceProviderProps = {
+export type ReactChildren = {
 	children: ReactNode;
 };
+
+export type LoadingContextTypes = {
+	isLoading: boolean,
+	changeIsLoadingState: () => void,
+}

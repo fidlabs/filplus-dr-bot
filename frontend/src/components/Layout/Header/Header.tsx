@@ -1,4 +1,5 @@
 import { AppBar, Toolbar, Typography } from '@mui/material';
+import SelectAccount from '../SelectAccount';
 
 const Header = () => {
   return (
@@ -7,6 +8,7 @@ const Header = () => {
         <Typography variant="h6">
           My Material-UI Website
         </Typography>
+        <SelectAccount/>
       </Toolbar>
     </AppBar>
   );

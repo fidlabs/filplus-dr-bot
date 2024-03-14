@@ -3,7 +3,7 @@ import { DataCap } from "../../types/DataCap";
 import { getNotarySignatures } from "../../api";
 import useLedgerWallet from "../../hooks/useLedgerWallet";
 import { Button } from "@mui/material";
-import { SignRemoveDataCapMessage } from "../../types/TransactionRaw";
+import { SubmitRemoveData } from "../../types/SubmitRemoveDataCap";
 
 const RootList = () => {
 	const [clientWithBothSignatures, setClientWithBothSignatures] = useState<DataCap[] | null>(null);
@@ -14,23 +14,26 @@ const RootList = () => {
 			setClientWithBothSignatures(response.clientWithBothSignatures);
 		});
 	}, []);
-
-	const onSignRemoveDataCap = async () => {
-		const signRemoveData = await submitRemoveDataCap();
-		debugger;
-		// await addSignatures(signRemoveData);
+	const onSignRemoveDataCap = async (submitRemoveData: SubmitRemoveData) => {
+		const signRemoveData = await submitRemoveDataCap(submitRemoveData);
+    console.log(signRemoveData)
 	};
-	if (!clientWithBothSignatures) return;
+	if (!clientWithBothSignatures || clientWithBothSignatures.length < 1) return;
 	return (
 		<div>
 			{clientWithBothSignatures.map((clientWithBothSignatures) => {
-				const {member, allocation, issue, stale, signature1} = clientWithBothSignatures;
-				const signData: SignRemoveDataCapMessage = {
-					verifiedClient: member,
-					dataCapAmount: allocation,
-					removalProposalID: [Number(issue)],
-					signature1,
+				const {member, allocation, issue, stale, signature1, notary1, signature2, notary2, txFrom, msigTxId} = clientWithBothSignatures;
+				const submitRemoveData: SubmitRemoveData = {
+          allocation: Number(allocation),
+          sig1: signature1 || '',
+          notary1: notary1 || '',
+          notary2 : notary2 || '',
+          sig2: signature2 || '',
+					txFrom,
+          msigTxId,
+          clientAddress: member,
 				}; // removalProposalID BRAK
+
 				if (parseInt(stale) !== 1) return;
 				return (
 					<div key={member + allocation} style={{display: 'flex', gap: '50px'}}>
@@ -39,7 +42,7 @@ const RootList = () => {
 						<span>{issue}</span>
 						<Button
 							variant="contained"
-							onClick={() => onSignRemoveDataCap({})}
+							onClick={() => onSignRemoveDataCap(submitRemoveData)}
 						>
 							Sign
 						</Button>
