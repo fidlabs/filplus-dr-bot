@@ -15,8 +15,6 @@ services:
   monitor:
     build: .
     restart: always
-    ports:
-      - '3080:3080'
     environment:
       - REDIS_URL=redis://redis:6379
     env_file:
