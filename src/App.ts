@@ -8,6 +8,8 @@ import {createClient} from 'redis';
 import fs from 'fs';
 import {createAppAuth} from '@octokit/auth-app';
 import {getOctokitInstance} from './octokitBuilder.js';
+import { LocalWallet } from './lib/LocalWallet.js';
+import { LotusApi } from './lib/LotusApi.js';
 
 dotenv.config();
 
@@ -20,6 +22,9 @@ const repo = process.env.REPO ?? 'REPO';
 const govOwner = process.env.GOV_OWNER ?? 'govOwner';
 const govRepo = process.env.GOV_REPO ?? 'govRepo';
 const monitoringInterval = Number(process.env.MONITORING_INTERVAL) || 3600;
+const glifUrl = process.env.GLIF_URL ?? 'https://api.glif.io';
+const glifToken = process.env.GLIF_TOKEN ?? 'GLIF_TOKEN';
+const mnemonic = process.env.MNEMONIC ?? 'mnemonic';
 
 // Start the Express server
 
@@ -163,17 +168,22 @@ async function handleStaleIssues(
 ) {
 	const staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
 	for (const address of addresses) {
+		let allocationBytes: bigint;
 		const entry: {
+			allocationBytes: bigint
 			allocation: number;
 			date: number;
 			stale?: string | undefined;
 			issue: number;
-		} = await client.hGetAll(address).then((res: Record<string, string>) => ({
+		} = await client.hGetAll(address).then((res: Record<string, string>) => (
+			{
+			allocationBytes: BigInt(res.allocation),
 			allocation: Number(res.allocation),
 			date: Number(res.date),
 			stale: res.stale as string | undefined,
 			issue: Number(res.issue),
 		}));
+
 		if (entry.stale) {
 			continue;
 		}
@@ -217,8 +227,42 @@ ${allocationConverted.toFixed(1)} ${allocationUnit}`,
 				labels: ['DcRemoveRequest'],
 			});
 			console.log('Stale allocation removal proposed for:', address);
+
+			await signNotaries(address, entry.allocationBytes, client).catch((e) => {
+				console.error(e, 'Faild to signNotaries for address:', address);
+			});
+			console.log('Notaries signed for client:', address);
 		}
 	}
+}
+
+async function signNotaries(
+	clientAddress: string,
+	amount: bigint,
+	client: any,
+) {
+	const wallet = new LocalWallet(mnemonic);
+	const api = new LotusApi(glifUrl, glifToken);
+	const notary1 = await api.addressId(wallet.getAddress(0));
+	const signature1 = wallet.signRemoveDataCapProposal(
+		0,
+		clientAddress,
+		amount,
+		await api.getProposalId(notary1, client),
+	);
+	const notary2 = await api.addressId(wallet.getAddress(1));
+	const signature2 = wallet.signRemoveDataCapProposal(
+		1,
+		clientAddress,
+		amount,
+		await api.getProposalId(notary2, client),
+	);
+	await client.hSet(clientAddress, {
+		signature1,
+		notary1,
+		signature2,
+		notary2,
+	});
 }
 
 async function delay(ms: number) {
