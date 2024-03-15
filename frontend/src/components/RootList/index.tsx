@@ -10,15 +10,14 @@ const RootList = () => {
 		DataCap[] | null
 	>(null);
 	const {submitRemoveDataCap} = useLedgerWallet();
-	console.log(clientWithBothSignatures);
+
 	useEffect(() => {
 		getNotarySignatures().then((response) => {
 			setClientWithBothSignatures(response.clientWithBothSignatures);
 		});
 	}, []);
 	const onSignRemoveDataCap = async (submitRemoveData: SubmitRemoveData) => {
-		const signRemoveData = await submitRemoveDataCap(submitRemoveData);
-		console.log(signRemoveData);
+		await submitRemoveDataCap(submitRemoveData);
 	};
 	if (!clientWithBothSignatures || clientWithBothSignatures.length < 1) return;
 	return (
@@ -45,6 +44,7 @@ const RootList = () => {
 					txFrom,
 					msigTxId,
 					clientAddress: member,
+					issue,
 				}; // removalProposalID BRAK
 
 				if (parseInt(stale) !== 1) return;

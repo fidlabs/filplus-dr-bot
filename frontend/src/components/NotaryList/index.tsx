@@ -13,7 +13,6 @@ const NotaryList = () => {
 			setDataCaps(response.dataCaps);
 		});
 	}, []);
-	console.log(dataCaps);
 	const onSignRemoveDataCap = async (signData: SignRemoveDataCapMessage) => {
 		const signRemoveData = await signRemoveDataCap(signData);
 		await addSignatures(signRemoveData);

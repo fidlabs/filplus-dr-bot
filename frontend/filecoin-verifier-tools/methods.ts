@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck
 import * as signer from '@zondax/filecoin-signing-tools/js';
 import cbor from 'cbor';
@@ -150,9 +151,8 @@ function make(testnet) {
   }
   */
 	const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
-	async function signTx(client, indexAccount, walletContext, tx) {
-		const head = await client.chainHead();
-		const address = (await walletContext.getAccounts())[indexAccount];
+	async function signTx(client, indexAccount, walletContext, tx, address) {
+		await client.chainHead();
 		const nonce = await client.mpoolGetNonce(address);
 		const filecoinMessage: LotusMessage = {
 			To: tx.to,
@@ -178,8 +178,8 @@ function make(testnet) {
 	}
 
 	// returns tx hash
-	async function sendTx(client, indexAccount, walletContext, obj) {
-		const tx = await signTx(client, indexAccount, walletContext, obj);
+	async function sendTx(client, indexAccount, walletContext, obj, address) {
+		const tx = await signTx(client, indexAccount, walletContext, obj, address);
 		console.log('tx2', tx);
 		console.log('going to send', tx);
 
@@ -187,6 +187,7 @@ function make(testnet) {
 	}
 
 	async function getReceipt(client, id) {
+		// eslint-disable-next-line no-constant-condition
 		while (true) {
 			const res = await client.stateSearchMsg({'/': id});
 			if (res && res.Receipt) {
@@ -476,6 +477,7 @@ function make(testnet) {
 			res[method.name] = function (data) {
 				let params;
 				if (arguments.length > 1) {
+					// eslint-disable-next-line prefer-rest-params
 					params = encode(method.input, Array.from(arguments));
 				} else {
 					params = encode(method.input, data);

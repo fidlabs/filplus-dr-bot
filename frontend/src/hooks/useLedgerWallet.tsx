@@ -1,39 +1,17 @@
-import {useContext, useState} from 'react';
-import FilecoinApp from '@zondax/ledger-filecoin';
-import {ConfigLotusNode} from '../types/ConfigLotusNode';
+import {useContext} from 'react';
 import {mapSeries} from 'bluebird';
 import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
-import {LotusMessage, SignRemoveDataCapMessage} from '../types/TransactionRaw';
+import {LotusMessage, SignRemoveDataCapMessage, SignRemoveDataCapMessageAmountString} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
-import {addRootKeySignatures, addSignatures} from '../api';
+import {addRootKeySignatures} from '../api';
 import {LoadingContext} from '../components/Context/LoaderContext';
 import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
+import { handleErrors } from '../functions/handleErrors';
 
 const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
 const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
-
-const handleErrors = (response: any) => {
-	if (
-		response.error_message &&
-		response.error_message.toLowerCase().includes('no errors')
-	) {
-		return response;
-	}
-	if (
-		response.error_message &&
-		response.error_message
-			.toLowerCase()
-			.includes('transporterror: invalild channel')
-	) {
-		throw new Error(
-			'Lost connection with Ledger. Please unplug and replug device.',
-		);
-	}
-	throw new Error(response.error_message);
-};
 
 const useLedgerWallet = () => {
 	const {ledgerApp, indexAccount, currentAccount} = useContext(DeviceContext);
@@ -82,7 +60,7 @@ const useLedgerWallet = () => {
 	const signRemoveDataCap = async (message: SignRemoveDataCapMessage) => {
 		setisLoadingTrue();
 		const verifyAPI = createVerifyAPI(sign, getAccounts);
-		const messageWithClientId: SignRemoveDataCapMessage = {
+		const messageWithClientId: SignRemoveDataCapMessageAmountString = {
 			...message,
 			dataCapAmount: (message.dataCapAmount).toString(16),
 			verifiedClient: await verifyAPI.actorAddress(message.verifiedClient),
@@ -118,6 +96,7 @@ const useLedgerWallet = () => {
 			clientAddress,
 			msigTxId,
 			txFrom,
+			issue
 		} = dataToSignRootKey;
 		try {
 			setisLoadingTrue();
@@ -139,8 +118,8 @@ const useLedgerWallet = () => {
 			};
 			const client = await verifyAPI.actorAddress(clientAddress);
 			const amountToRemove = allocation.toString(16);
+			
 			if (!msigTxId) {
-				// needs to be hex string
 				verifyAPI.encodeRemoveDataCapParameters({verifiedClient: client, dataCapAmount: amountToRemove, removalProposalID: [0]});
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
@@ -151,18 +130,17 @@ const useLedgerWallet = () => {
 					sig2,
 					indexAccount,
 					ledgerApp,
+					currentAccount,
 				);
 				const receipt = await verifyAPI.stateWaitMessage(txCid);
 				const msigTxId = receipt.ReturnDec.TxnID;
 				await addRootKeySignatures({
+					issueNumber: issue,
 					msigTxId,
 					clientAddress,
 					txFrom: await verifyAPI.actorAddress(currentAccount),
 				});
-				// console.log('msig tx id', msigTxId);
-				// console.log('All pendings', await verifyAPI.pendingRootTransactions());
 
-				// console.log('Now approving as second root key');
 			} else {
 				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
 					await verifyAPI.actorAddress(clientAddress),
@@ -187,21 +165,23 @@ const useLedgerWallet = () => {
 					indexAccount,
 					ledgerApp,
 				);
-				// isFinished dodac tu zapytanie do backendu
 				const responseData = await verifyAPI.stateWaitMessage(approveId)
 
 				if(responseData?.ReturnDec?.Applied === true && responseData?.ReturnDec?.Code === 16){
 					await addRootKeySignatures({
-						isFinished: true,
+						clientAddress,
+						issueNumber: issue,
+						msigTxId,
+						rootKeyAddress2: await verifyAPI.actorAddress(currentAccount)
 					});
 				}
 				console.log(approveId);
 				console.log('stateWaitMessage for', approveId);
 				console.log();
 			}
-		} catch (e: any) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} catch (e : any) {
 			console.error('error', e.stack);
-			setisLoadingFalse();
 		} finally{
 			setisLoadingFalse();
 		}

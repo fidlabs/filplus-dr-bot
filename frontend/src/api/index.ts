@@ -1,5 +1,6 @@
 import {DataCap} from '../types/DataCap';
 import {Signature} from '../types/Signature';
+import { SignRemoveDataCapMessage } from '../types/TransactionRaw';
 import {fetchWithErrorHandling} from './errorHandler';
 
 const apiUrl = import.meta.env.VITE_APP_URL ?? 'http://localhost:3000';
@@ -26,7 +27,7 @@ const commentIssueWithSign = async (
 	await fetchWithErrorHandling<void>(`${apiUrl}/post-issue`, config);
 };
 
-const addSignatures = async (signature: any) => {
+const addSignatures = async (signature: SignRemoveDataCapMessage) => {
 	const config = defaultConfigPostData({...signature});
 	await fetchWithErrorHandling<void>(`${apiUrl}/add-signature`, config);
 };

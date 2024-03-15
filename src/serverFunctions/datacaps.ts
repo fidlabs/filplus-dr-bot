@@ -2,6 +2,7 @@ import {type Response} from 'express';
 import {createClient} from 'redis';
 import * as dotenv from 'dotenv';
 import {type Signature} from '../types/signature.js';
+import {postIssue} from './postIssue.js';
 
 dotenv.config();
 
@@ -53,7 +54,9 @@ export const postSignatures = async (body: Body, res: Response) => {
 type BodyRootKey = {
 	clientAddress: string;
 	txFrom?: string;
-	msigTxId?: string;
+	msigTxId: string;
+	issueNumber: string;
+	rootKeyAddress2?: string;
 };
 
 export const postRootKeySignatures = async (
@@ -61,16 +64,29 @@ export const postRootKeySignatures = async (
 	res: Response,
 ) => {
 	const client = await createClient({url: redisUrl}).connect();
-	const {msigTxId, clientAddress, txFrom} = body;
-	const isTxFrom = await client.hGet(clientAddress, 'txFrom');
+	const {msigTxId, clientAddress, txFrom, issueNumber, rootKeyAddress2} = body;
+	const isTxFrom = Boolean(await client.hGet(clientAddress, 'txFrom'));
+	console.log(isTxFrom)
+	const nameProperties = isTxFrom ? 'rootKeyAddress2' : 'txFrom';
+	const valueProperties = isTxFrom ? rootKeyAddress2 : txFrom;
+
+	await postIssue({
+		issueNumber,
+		txFrom: isTxFrom ? rootKeyAddress2 : txFrom,
+		isLastComment: isTxFrom,
+		msigTxId,
+	});
+
 	if (isTxFrom) {
 		await client.hSet(clientAddress, {
-			isFinished: true,
+			msigTxId,
+			[nameProperties]: valueProperties ?? '',
+			isFinished: 'true',
 		});
 	} else {
 		await client.hSet(clientAddress, {
 			msigTxId,
-			txFrom,
+			[nameProperties]: valueProperties ?? '',
 		});
 	}
 
@@ -83,7 +99,8 @@ export const getClientWithBothSignatures = async () => {
 	const clientWithBothSignatures = await Promise.all(
 		members.map(async (member) => {
 			const filecoinClient = await client.hGetAll(member);
-			const checkIfSignature = filecoinClient.signature1 && filecoinClient.signature2;
+			const checkIfSignature
+				= filecoinClient.signature1 && filecoinClient.signature2;
 			if (checkIfSignature && !filecoinClient.isFinished) {
 				return {...filecoinClient, member};
 			}

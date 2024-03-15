@@ -51,19 +51,22 @@ app.get('/notary-signatures', async (req: Request, res) => {
 	}, res);
 });
 
-app.post('/post-issue', async (req: Request, res) => {
-	errorHandler(async () => {
-		const body = req.body as {issueNumber: number; signature: Signature};
-		await postIssue(body);
-	}, res);
-});
+// eslint-disable-next-line capitalized-comments
+// app.post('/post-issue', async (req: Request, res) => {
+// 	errorHandler(async () => {
+// 		const body = req.body as {issueNumber: number; signature: Signature};
+// 		await postIssue(body);
+// 	}, res);
+// });
 
 app.post('/add-root-key-signature', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {
 			clientAddress: string;
 			txFrom?: string;
-			msigTxId?: string;
+			msigTxId: string;
+			issueNumber: string;
+			rootKeyAddress2?: string;
 		};
 		await postRootKeySignatures(body, res);
 		res.json({message: 'Signature root key added successfully'});
