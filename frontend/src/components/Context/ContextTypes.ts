@@ -18,4 +18,6 @@ export type ReactChildren = {
 export type LoadingContextTypes = {
 	isLoading: boolean,
 	changeIsLoadingState: () => void,
+	setisLoadingTrue: () => void,
+	setisLoadingFalse: () => void,
 }

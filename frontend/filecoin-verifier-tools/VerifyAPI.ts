@@ -100,6 +100,7 @@ export class VerifyAPI {
 		);
 		const encoded_hex_params = encoded_params_buffer.toString('hex');
 		const txBlob = prefix__hex_encoded.concat(encoded_hex_params);
+		console.log(txBlob)
 		return txBlob;
 	}
 

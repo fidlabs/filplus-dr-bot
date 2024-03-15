@@ -8,11 +8,13 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header />
-      {children}
+      <div style={{ flexGrow: 1 }}>
+        {children}
+      </div>
       <Footer />
-    </>
+    </div>
   );
 };
 
