@@ -12,7 +12,14 @@ export type LotusMessage = {
 
 export type SignRemoveDataCapMessage = {
 	verifiedClient: string; // idAddress
-	dataCapAmount: number;
+	dataCapAmount: number ; //string for hex
 	removalProposalID: number[];
 	signature1?: string
 };
+
+export type SignRemoveDataCapMessageAmountString = {
+	verifiedClient: string; // idAddress
+	dataCapAmount: string;
+	removalProposalID: number[];
+	signature1?: string
+}

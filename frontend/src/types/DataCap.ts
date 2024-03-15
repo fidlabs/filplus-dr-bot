@@ -8,5 +8,6 @@ export type DataCap = {
   notary2?: string,
   signature1?: string,
   signature2?: string,
-  msigTx?: string,
+  msigTxId?: string,
+  txFrom?: string,
 }

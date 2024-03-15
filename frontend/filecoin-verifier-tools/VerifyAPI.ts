@@ -1,10 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck
 import {LotusRPC} from '@filecoin-shipyard/lotus-client-rpc';
 import {BrowserProvider} from '@filecoin-shipyard/lotus-client-provider-browser';
 import {methods} from './methods';
 import {mainnet} from '@filecoin-shipyard/lotus-client-schema';
-import {NodejsProvider} from '@filecoin-shipyard/lotus-client-provider-nodejs';
 import {decode} from 'cbor';
+import FilecoinApp from '@zondax/ledger-filecoin';
 
 const SIGNATURE_DOMAIN_SEPARATION_REMOVE_DATACAP = 'fil_removedatacap:';
 
@@ -17,6 +18,7 @@ export class VerifyAPI {
 	}
 
 	// private readonly methods: any;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private chainHead: any = null;
 
 	static browserProvider(lotusEndpoint, token) {
@@ -65,6 +67,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address
 	) {
 		// Not address but account in the form "t01004", for instance
 		const tx = this.methods.rootkey.propose(
@@ -75,6 +78,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address
 		);
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}
 		// we return the messageID
@@ -100,7 +104,6 @@ export class VerifyAPI {
 		);
 		const encoded_hex_params = encoded_params_buffer.toString('hex');
 		const txBlob = prefix__hex_encoded.concat(encoded_hex_params);
-		console.log(txBlob)
 		return txBlob;
 	}
 
@@ -129,8 +132,9 @@ export class VerifyAPI {
 		verifier2: string,
 		signature2: string,
 		indexAccount: number,
-		wallet: any,
-		{gas} = {gas: 0},
+		wallet: FilecoinApp,
+		address,
+		{gas} = {gas: 0}
 	) {
 		const removeDatacapRequest = this.encodeRemoveDataCapTx(
 			clientToRemoveDcFrom,
@@ -147,6 +151,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address
 		);
 		return res['/'];
 	}
@@ -156,6 +161,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address
 	) {
 		// Not address but account in the form "t01004", for instance
 		const tx = this.methods.rootkey.propose(
@@ -166,18 +172,20 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address
 		);
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}
 		// we return the messageID
 		return res['/'];
 	}
 
-	async send(tx, indexAccount, wallet, {gas} = {gas: 0}) {
+	async send(tx, indexAccount, wallet, {gas} = {gas: 0}, address) {
 		const res = await this.methods.sendTx(
 			this.client,
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address
 		);
 		return res['/'];
 	}
@@ -202,6 +210,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address,
 	) {
 		// Not address but account in the form "t01003", for instance
 		const add = this.methods.verifreg.addVerifier(verifierAccount, datacap);
@@ -214,6 +223,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address
 		);
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}
 		// we return the messageID
@@ -227,6 +237,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address,
 	) {
 		// Not address but account in the form "t01003", for instance
 		const remove = this.methods.verifreg.removeVerifier(verifierAccount);
@@ -239,6 +250,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address,
 		);
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}
 		// we return the messageID
@@ -253,6 +265,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address
 	) {
 		// Not address but account in the form "t01003", for instance
 		const add = this.methods.verifreg.addVerifier(verifierAccount, datacap);
@@ -265,6 +278,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...tx, gas},
+			address
 		);
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}
 		// we return the messageID
@@ -327,7 +341,6 @@ export class VerifyAPI {
 		} catch (err) {
 			return str;
 		}
-		actorAddress;
 	}
 
 	async actorAddress(str) {
@@ -387,6 +400,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address
 	) {
 		const arg = this.methods.verifreg.addVerifiedClient(clientAddress, datacap);
 		const res = await this.methods.sendTx(
@@ -394,6 +408,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...arg, gas},
+			address,
 		);
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}
 		// we return the messageID
@@ -407,6 +422,7 @@ export class VerifyAPI {
 		indexAccount,
 		wallet,
 		{gas} = {gas: 0},
+		address,
 	) {
 		const tx = this.methods.verifreg.addVerifiedClient(clientAddress, datacap);
 		const m_actor = this.methods.actor(multisigAddress, this.methods.multisig);
@@ -417,6 +433,7 @@ export class VerifyAPI {
 			indexAccount,
 			this.checkWallet(wallet),
 			{...proposeTx, gas},
+			address,
 		);
 
 		// res has this shape: {/: "bafy2bzaceb32fwcf7uatfxfs367f3tw5yejcresnw4futiz35heb57ybaqxvu"}

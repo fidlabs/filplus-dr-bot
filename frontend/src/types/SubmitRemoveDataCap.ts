@@ -7,4 +7,5 @@ export type SubmitRemoveData = {
   clientAddress: string;
   msigTxId?: string;
   txFrom?: string;
+  issue?: string;
 };
