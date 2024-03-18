@@ -8,8 +8,8 @@ import {createClient} from 'redis';
 import fs from 'fs';
 import {createAppAuth} from '@octokit/auth-app';
 import {getOctokitInstance} from './octokitBuilder.js';
-import { LocalWallet } from './lib/LocalWallet.js';
-import { LotusApi } from './lib/LotusApi.js';
+import {LocalWallet} from './lib/LocalWallet.js';
+import {LotusApi} from './lib/LotusApi.js';
 
 dotenv.config();
 
@@ -170,13 +170,12 @@ async function handleStaleIssues(
 	for (const address of addresses) {
 		let allocationBytes: bigint;
 		const entry: {
-			allocationBytes: bigint
+			allocationBytes: bigint;
 			allocation: number;
 			date: number;
 			stale?: string | undefined;
 			issue: number;
-		} = await client.hGetAll(address).then((res: Record<string, string>) => (
-			{
+		} = await client.hGetAll(address).then((res: Record<string, string>) => ({
 			allocationBytes: BigInt(res.allocation),
 			allocation: Number(res.allocation),
 			date: Number(res.date),
@@ -201,13 +200,13 @@ async function handleStaleIssues(
 				body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
 			});
 
-			await datacapOctokit.rest.issues.update({
-				owner,
-				repo,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				issue_number: entry.issue,
-				state: 'closed',
-			});
+			// await datacapOctokit.rest.issues.update({
+			// 	owner,
+			// 	repo,
+			// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+			// 	issue_number: entry.issue,
+			// 	state: 'closed',
+			// });
 
 			const clientName = await parseClientName(datacapOctokit, entry.issue);
 			let allocationConverted = entry.allocation / 1024 ** 4;
@@ -217,7 +216,7 @@ async function handleStaleIssues(
 				allocationUnit = 'PiB';
 			}
 
-			await govOctokit.rest.issues.create({
+			const issue = await govOctokit.rest.issues.create({
 				owner: govOwner,
 				repo: govRepo,
 				title: `DataCap Removal for Issue #${entry.issue}`,
@@ -234,6 +233,12 @@ ${address}
 ${allocationConverted.toFixed(1)} ${allocationUnit}`,
 				labels: ['DcRemoveRequest'],
 			});
+
+			await client.hSet(address, {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				issueGov: issue.data.number,
+			});
+
 			console.log('Stale allocation removal proposed for:', address);
 
 			await signNotaries(address, entry.allocationBytes, client).catch((e) => {
@@ -251,20 +256,24 @@ async function signNotaries(
 ) {
 	const wallet = new LocalWallet(mnemonic);
 	const api = new LotusApi(glifUrl, glifToken);
+	const clinetAdress1 = await api.addressId(clientAddress);
 	const notary1 = await api.addressId(wallet.getAddress(0));
+	const proposalId1 = await api.getProposalId(notary1, clinetAdress1);
 	const signature1 = wallet.signRemoveDataCapProposal(
 		0,
-		clientAddress,
+		clinetAdress1,
 		amount,
-		await api.getProposalId(notary1, client),
+		proposalId1,
 	);
 	const notary2 = await api.addressId(wallet.getAddress(1));
+	const proposalId2 = await api.getProposalId(notary2, clinetAdress1);
 	const signature2 = wallet.signRemoveDataCapProposal(
 		1,
-		clientAddress,
+		clinetAdress1,
 		amount,
-		await api.getProposalId(notary2, client),
+		proposalId2,
 	);
+
 	await client.hSet(clientAddress, {
 		signature1,
 		notary1,

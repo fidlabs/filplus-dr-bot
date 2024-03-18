@@ -66,12 +66,11 @@ export const postRootKeySignatures = async (
 	const client = await createClient({url: redisUrl}).connect();
 	const {msigTxId, clientAddress, txFrom, issueNumber, rootKeyAddress2} = body;
 	const isTxFrom = Boolean(await client.hGet(clientAddress, 'txFrom'));
-	console.log(isTxFrom)
+	const issueGov = await client.hGet(clientAddress, 'issueGov');
 	const nameProperties = isTxFrom ? 'rootKeyAddress2' : 'txFrom';
 	const valueProperties = isTxFrom ? rootKeyAddress2 : txFrom;
-
 	await postIssue({
-		issueNumber,
+		issueNumber: issueGov!,
 		txFrom: isTxFrom ? rootKeyAddress2 : txFrom,
 		isLastComment: isTxFrom,
 		msigTxId,

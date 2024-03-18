@@ -21,7 +21,6 @@ const DeviceProvider = ({children}: ReactChildren) => {
 	const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 	const [indexAccount, setIndexAccount] = useState<number>(0);
 	const [accounts, setAccounts] = useState<string[] | null>(null);
-	console.log(currentAccount);
 	const getAccounts = async (ledgerApp: FilecoinApp) => {
 		const paths = [];
 		for (

@@ -36,7 +36,7 @@ const RootList = () => {
 					msigTxId,
 				} = clientWithBothSignatures;
 				const submitRemoveData: SubmitRemoveData = {
-					allocation: Number(2000),
+					allocation: BigInt(allocation),
 					sig1: signature1 || '',
 					notary1: notary1 || '',
 					notary2: notary2 || '',

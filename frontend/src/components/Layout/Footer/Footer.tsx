@@ -5,7 +5,6 @@ const Footer = () => {
     <AppBar position="static" color="primary">
       <Toolbar>
         <Typography variant="body1" color="inherit">
-          © 2024 My app. All rights reserved.
         </Typography>
       </Toolbar>
     </AppBar>

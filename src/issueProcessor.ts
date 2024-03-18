@@ -47,8 +47,6 @@ export const processIssue = async (
 				}
 			}
 		}
-
-		console.log(dca);
 		return dca;
 	} catch (e) {
 		console.error(e);

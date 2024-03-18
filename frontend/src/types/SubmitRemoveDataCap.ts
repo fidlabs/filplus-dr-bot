@@ -1,5 +1,5 @@
 export type SubmitRemoveData = {
-  allocation: number;
+  allocation: bigint;
   notary1: string;
   sig1: string;
   notary2: string;

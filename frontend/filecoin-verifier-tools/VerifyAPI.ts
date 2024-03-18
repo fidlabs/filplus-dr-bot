@@ -87,7 +87,7 @@ export class VerifyAPI {
 
 	encodeRemoveDataCapParameters(message: {
 		verifiedClient: string;
-		dataCapAmount: string;
+		dataCapAmount: bigint;
 		removalProposalID: number[];
 	}) {
 		const orderedProposalParams = [
@@ -108,8 +108,8 @@ export class VerifyAPI {
 	}
 
 	encodeRemoveDataCapTx(
-		clientToRemoveDcFrom: string,
-		datacap: string,
+		clientToRemoveDcFrom: bigint,
+		datacap: bigint,
 		verifier1: string,
 		signature1: string,
 		verifier2: string,
@@ -126,7 +126,7 @@ export class VerifyAPI {
 
 	async proposeRemoveDataCap(
 		clientToRemoveDcFrom: string,
-		datacap: string,
+		datacap: bigint,
 		verifier1: string,
 		signature1: string,
 		verifier2: string,
@@ -179,7 +179,7 @@ export class VerifyAPI {
 		return res['/'];
 	}
 
-	async send(tx, indexAccount, wallet, {gas} = {gas: 0}, address) {
+	async send(tx, indexAccount, wallet, address, {gas} = {gas: 0}) {
 		const res = await this.methods.sendTx(
 			this.client,
 			indexAccount,
@@ -441,12 +441,13 @@ export class VerifyAPI {
 		return res['/'];
 	}
 
-	async approvePending(msig, tx, from, wallet) {
+	async approvePending(msig, tx, indexAccount, wallet, address) {
 		const m1_actor = this.methods.actor(msig, this.methods.multisig);
 		const messageId = await this.send(
 			m1_actor.approve(parseInt(tx.id), tx.tx),
-			from,
+			indexAccount,
 			wallet,
+			address
 		);
 		return messageId;
 	}

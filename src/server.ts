@@ -51,14 +51,6 @@ app.get('/notary-signatures', async (req: Request, res) => {
 	}, res);
 });
 
-// eslint-disable-next-line capitalized-comments
-// app.post('/post-issue', async (req: Request, res) => {
-// 	errorHandler(async () => {
-// 		const body = req.body as {issueNumber: number; signature: Signature};
-// 		await postIssue(body);
-// 	}, res);
-// });
-
 app.post('/add-root-key-signature', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {

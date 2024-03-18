@@ -1,14 +1,16 @@
 import {useContext} from 'react';
 import {mapSeries} from 'bluebird';
 import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
-import {LotusMessage, SignRemoveDataCapMessage, SignRemoveDataCapMessageAmountString} from '../types/TransactionRaw';
+import {
+	LotusMessage,
+} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
 import {addRootKeySignatures} from '../api';
 import {LoadingContext} from '../components/Context/LoaderContext';
 import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
-import { handleErrors } from '../functions/handleErrors';
+import {handleErrors} from '../functions/handleErrors';
 
 const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
 const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
@@ -57,35 +59,6 @@ const useLedgerWallet = () => {
 		return await generateSignedMessage(filecoinMessage, signedMessage);
 	};
 
-	const signRemoveDataCap = async (message: SignRemoveDataCapMessage) => {
-		setisLoadingTrue();
-		const verifyAPI = createVerifyAPI(sign, getAccounts);
-		const messageWithClientId: SignRemoveDataCapMessageAmountString = {
-			...message,
-			dataCapAmount: (message.dataCapAmount).toString(16),
-			verifiedClient: await verifyAPI.actorAddress(message.verifiedClient),
-		};
-		const encodedMessage =
-			verifyAPI.encodeRemoveDataCapParameters(messageWithClientId);
-		const messageBlob = Buffer.from(encodedMessage, 'hex');
-
-		const signedMessage = await ledgerApp.signRemoveDataCap(
-			`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount}`,
-			messageBlob,
-		);
-
-		const ts_compact = signedMessage.signature_compact.toString('hex');
-
-		const signedMessageData = {
-			ts_compact: `01${ts_compact}`,
-			clientAddress: message.verifiedClient,
-			notaryAddres: await verifyAPI.actorAddress(currentAccount),
-			isSignature1: !!message.signature1,
-		};
-		setisLoadingFalse();
-		return signedMessageData;
-	};
-
 	const submitRemoveDataCap = async (dataToSignRootKey: SubmitRemoveData) => {
 		const {
 			allocation,
@@ -96,7 +69,7 @@ const useLedgerWallet = () => {
 			clientAddress,
 			msigTxId,
 			txFrom,
-			issue
+			issue,
 		} = dataToSignRootKey;
 		try {
 			setisLoadingTrue();
@@ -117,13 +90,16 @@ const useLedgerWallet = () => {
 				return accounts;
 			};
 			const client = await verifyAPI.actorAddress(clientAddress);
-			const amountToRemove = allocation.toString(16);
-			
+
 			if (!msigTxId) {
-				verifyAPI.encodeRemoveDataCapParameters({verifiedClient: client, dataCapAmount: amountToRemove, removalProposalID: [0]});
+				verifyAPI.encodeRemoveDataCapParameters({
+					verifiedClient: client,
+					dataCapAmount: allocation,
+					removalProposalID: [0],
+				});
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
-					amountToRemove,
+					allocation,
 					notary1,
 					sig1,
 					notary2,
@@ -140,17 +116,16 @@ const useLedgerWallet = () => {
 					clientAddress,
 					txFrom: await verifyAPI.actorAddress(currentAccount),
 				});
-
 			} else {
 				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
 					await verifyAPI.actorAddress(clientAddress),
-					amountToRemove,
+					allocation,
 					notary1,
 					sig1,
 					notary2,
 					sig2,
 				);
-					console.log(removeDatacapRequest.params.toString('hex'))
+
 				const msigTx = {
 					id: msigTxId,
 					tx: {
@@ -158,38 +133,37 @@ const useLedgerWallet = () => {
 						...removeDatacapRequest,
 					},
 				};
-
 				const approveId = await verifyAPI.approvePending(
 					'f080',
 					msigTx,
 					indexAccount,
 					ledgerApp,
+					currentAccount
 				);
-				const responseData = await verifyAPI.stateWaitMessage(approveId)
+				const responseData = await verifyAPI.stateWaitMessage(approveId);
 
-				if(responseData?.ReturnDec?.Applied === true && responseData?.ReturnDec?.Code === 16){
+				if (
+					responseData?.ReturnDec?.Applied === true &&
+					responseData?.ReturnDec?.Code === 0
+				) {
 					await addRootKeySignatures({
 						clientAddress,
 						issueNumber: issue,
 						msigTxId,
-						rootKeyAddress2: await verifyAPI.actorAddress(currentAccount)
+						rootKeyAddress2: await verifyAPI.actorAddress(currentAccount),
 					});
 				}
-				console.log(approveId);
-				console.log('stateWaitMessage for', approveId);
-				console.log();
 			}
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (e : any) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} catch (e: any) {
 			console.error('error', e.stack);
-		} finally{
+		} finally {
 			setisLoadingFalse();
 		}
 	};
 
 	return {
 		getAccounts,
-		signRemoveDataCap,
 		sign,
 		submitRemoveDataCap,
 	};

@@ -14,9 +14,6 @@ function Content() {
 		<>
 			{!listState && (
 				<>
-					{/* <BoxWithButton onClick={() => setListState(ListState.NOTARY)}>
-						Choose Notary List
-					</BoxWithButton> */}
 					<BoxWithButton onClick={() => setListState(ListState.ROOT)}>
 						Choose Root Key Holder List
 					</BoxWithButton>
@@ -28,7 +25,6 @@ function Content() {
 						<ArrowBackIcon />
 						<Typography variant="button">Back</Typography>
 					</IconButton>
-					{/* {listState === ListState.NOTARY && <NotaryList />} */}
 					{listState === ListState.ROOT && <RootList />}
 				</div>
 			)}
