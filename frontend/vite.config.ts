@@ -33,4 +33,13 @@ export default defineConfig({
 		host: true,
 		port: 8000,
 	},
+	build: {
+		minify: 'terser',
+		target: 'esnext',
+		modulePreload: false,
+		commonjsOptions: {
+			ignoreGlobal: true,
+			transformMixedEsModules: true,
+		},
+	},
 });

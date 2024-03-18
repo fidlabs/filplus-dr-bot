@@ -130,3 +130,4 @@ dist
 
 github_app_private_key.pem
 certs/
+ssl-docker.yml
