@@ -8,6 +8,8 @@ import {createClient} from 'redis';
 import fs from 'fs';
 import {createAppAuth} from '@octokit/auth-app';
 import {getOctokitInstance} from './octokitBuilder.js';
+import {LocalWallet} from './lib/LocalWallet.js';
+import {LotusApi} from './lib/LotusApi.js';
 
 dotenv.config();
 
@@ -19,6 +21,12 @@ const owner = process.env.OWNER ?? 'OWNER';
 const repo = process.env.REPO ?? 'REPO';
 const govOwner = process.env.GOV_OWNER ?? 'govOwner';
 const govRepo = process.env.GOV_REPO ?? 'govRepo';
+const monitoringInterval = Number(process.env.MONITORING_INTERVAL) || 3600;
+const glifUrl = process.env.GLIF_URL ?? 'https://api.glif.io';
+const glifToken = process.env.GLIF_TOKEN ?? 'GLIF_TOKEN';
+const mnemonic = process.env.MNEMONIC ?? 'mnemonic';
+
+// Start the Express server
 
 (async () => {
 	// eslint-disable-next-line no-constant-condition
@@ -43,7 +51,6 @@ const govRepo = process.env.GOV_REPO ?? 'govRepo';
 			govOwner,
 			govRepo,
 		);
-
 		const approvedRequests = await getApprovedRequests(requestsOctokit);
 		if (approvedRequests.length > 0) {
 			const addresses = await indexAllocations(client, approvedRequests);
@@ -55,13 +62,14 @@ const govRepo = process.env.GOV_REPO ?? 'govRepo';
 			).catch((e) => {
 				console.log(e);
 			});
-		}
-		else {
-			console.log(`No approved requests found in the repo '${owner}/${repo}' issues.`);
+		} else {
+			console.log(
+				`No approved requests found in the repo '${owner}/${repo}' issues.`,
+			);
 		}
 
 		await client.disconnect();
-		await delay(1000 * 3600);
+		await delay(monitoringInterval * 1000);
 	}
 })();
 
@@ -101,12 +109,20 @@ async function indexAllocations(
 	let addresses: string[] = [];
 	for (const request of approvedRequests) {
 		if (request.address) {
-			const response = await axios.post('https://api.node.glif.io/', {
-				jsonrpc: '2.0',
-				method: 'Filecoin.StateVerifiedClientStatus',
-				params: [`${request.address}`, null],
-				id: `${request.id}`,
-			});
+			let response;
+			try {
+				response = await axios.post(process.env.GLIF_URL!, {
+					headers: {Authorization: 'Bearer ' + process.env.GLIF_TOKEN},
+					jsonrpc: '2.0',
+					method: 'Filecoin.StateVerifiedClientStatus',
+					params: [`${request.address}`, null],
+					id: `${request.id}`,
+				});
+			} catch (e) {
+				console.error(e, 'Faild to getState for address:', request.address);
+				continue;
+			}
+
 			const allocation = Number(response.data.result);
 			const cachedAllocation = Number(
 				await client.hGet(request.address, 'allocation'),
@@ -152,17 +168,21 @@ async function handleStaleIssues(
 ) {
 	const staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
 	for (const address of addresses) {
+		let allocationBytes: bigint;
 		const entry: {
+			allocationBytes: bigint;
 			allocation: number;
 			date: number;
 			stale?: string | undefined;
 			issue: number;
 		} = await client.hGetAll(address).then((res: Record<string, string>) => ({
+			allocationBytes: BigInt(res.allocation),
 			allocation: Number(res.allocation),
 			date: Number(res.date),
 			stale: res.stale as string | undefined,
 			issue: Number(res.issue),
 		}));
+
 		if (entry.stale) {
 			continue;
 		}
@@ -180,6 +200,14 @@ async function handleStaleIssues(
 				body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
 			});
 
+			// await datacapOctokit.rest.issues.update({
+			// 	owner,
+			// 	repo,
+			// 	// eslint-disable-next-line @typescript-eslint/naming-convention
+			// 	issue_number: entry.issue,
+			// 	state: 'closed',
+			// });
+
 			const clientName = await parseClientName(datacapOctokit, entry.issue);
 			let allocationConverted = entry.allocation / 1024 ** 4;
 			let allocationUnit = 'TiB';
@@ -188,7 +216,7 @@ async function handleStaleIssues(
 				allocationUnit = 'PiB';
 			}
 
-			await govOctokit.rest.issues.create({
+			const issue = await govOctokit.rest.issues.create({
 				owner: govOwner,
 				repo: govRepo,
 				title: `DataCap Removal for Issue #${entry.issue}`,
@@ -205,9 +233,53 @@ ${address}
 ${allocationConverted.toFixed(1)} ${allocationUnit}`,
 				labels: ['DcRemoveRequest'],
 			});
+
+			await client.hSet(address, {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				issueGov: issue.data.number,
+			});
+
 			console.log('Stale allocation removal proposed for:', address);
+
+			await signNotaries(address, entry.allocationBytes, client).catch((e) => {
+				console.error(e, 'Faild to signNotaries for address:', address);
+			});
+			console.log('Notaries signed for client:', address);
 		}
 	}
+}
+
+async function signNotaries(
+	clientAddress: string,
+	amount: bigint,
+	client: any,
+) {
+	const wallet = new LocalWallet(mnemonic);
+	const api = new LotusApi(glifUrl, glifToken);
+	const clinetAdress1 = await api.addressId(clientAddress);
+	const notary1 = await api.addressId(wallet.getAddress(0));
+	const proposalId1 = await api.getProposalId(notary1, clinetAdress1);
+	const signature1 = wallet.signRemoveDataCapProposal(
+		0,
+		clinetAdress1,
+		amount,
+		proposalId1,
+	);
+	const notary2 = await api.addressId(wallet.getAddress(1));
+	const proposalId2 = await api.getProposalId(notary2, clinetAdress1);
+	const signature2 = wallet.signRemoveDataCapProposal(
+		1,
+		clinetAdress1,
+		amount,
+		proposalId2,
+	);
+
+	await client.hSet(clientAddress, {
+		signature1,
+		notary1,
+		signature2,
+		notary2,
+	});
 }
 
 async function delay(ms: number) {

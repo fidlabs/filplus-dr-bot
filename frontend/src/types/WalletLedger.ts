@@ -1,0 +1,1 @@
+export type LoadWalletOptionsType = { multisig: boolean, multisigAddress: string }

@@ -11,6 +11,7 @@ services:
     environment:
       - REDIS_PASSWORD=my-password
       - REDIS_PORT=6379
+
   monitor:
     build: .
     restart: always
@@ -20,3 +21,27 @@ services:
       - REDIS_URL=redis://redis:6379
     env_file:
       - .env
+
+  server:
+    build: .
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - REDIS_URL=redis://redis:6379     
+    env_file:
+      - .env
+    depends_on:
+    - redis
+    command: npm run server
+
+  # frontend:
+  #   build: ./frontend    
+  #   restart: always
+  #   ports:
+  #     - '8000:8000'     
+  #   environment:
+  #     - API_URL=http://localhost:3000    
+  #   depends_on:
+  #     - server
+  #   command: npm run dev 
