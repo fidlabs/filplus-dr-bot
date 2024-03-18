@@ -1,0 +1,4 @@
+.env
+backend.env
+frontend.env
+github_app_private_key.pem

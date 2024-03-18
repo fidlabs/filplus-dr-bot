@@ -23,7 +23,7 @@ const govOwner = process.env.GOV_OWNER ?? 'govOwner';
 const govRepo = process.env.GOV_REPO ?? 'govRepo';
 const monitoringInterval = Number(process.env.MONITORING_INTERVAL) || 3600;
 const glifUrl = process.env.GLIF_URL ?? 'https://api.glif.io';
-const glifToken = process.env.GLIF_TOKEN ?? 'GLIF_TOKEN';
+const glifToken = process.env.GLIF_TOKEN;
 const mnemonic = process.env.MNEMONIC ?? 'mnemonic';
 
 // Start the Express server
@@ -109,24 +109,9 @@ async function indexAllocations(
 	let addresses: string[] = [];
 	for (const request of approvedRequests) {
 		if (request.address) {
-			let response;
-			try {
-				response = await axios.post(process.env.GLIF_URL!, {
-					headers: {Authorization: 'Bearer ' + process.env.GLIF_TOKEN},
-					jsonrpc: '2.0',
-					method: 'Filecoin.StateVerifiedClientStatus',
-					params: [`${request.address}`, null],
-					id: `${request.id}`,
-				});
-			} catch (e) {
-				console.error(e, 'Faild to getState for address:', request.address);
-				continue;
-			}
-
-			const allocation = Number(response.data.result);
-			const cachedAllocation = Number(
-				await client.hGet(request.address, 'allocation'),
-			);
+			const api = new LotusApi(glifUrl, glifToken);
+			const allocation = await api.getVerifiedClientStatus(request.address);
+			const cachedAllocation = await client.hGet(request.address, 'allocation');
 			if (cachedAllocation === allocation) {
 				console.log(request.address, '- No change in allocation');
 			} else {

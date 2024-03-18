@@ -15,7 +15,7 @@ function isEqualByteArray(a: Uint8Array, b: Uint8Array): boolean {
 export class LotusApi {
     client: LotusClient
 
-    constructor(url: string, token: string) {
+    constructor(url: string, token?: string) {
         const httpConnector = new HttpJsonRpcConnector({ url, token });
         this.client = new LotusClient(httpConnector);
     }
@@ -35,5 +35,10 @@ export class LotusApi {
         const matchedEntry = decoded[1].find((entry: any) => isEqualByteArray(entry[0][0], key));
         if (!matchedEntry) return 0;
         return matchedEntry[0][1][0];
+    }
+
+    async getVerifiedClientStatus(clientAddress: string): Promise<number> {
+        const datacap = await this.client.state.verifiedClientStatus(clientAddress);
+        return Number(datacap);
     }
 }
