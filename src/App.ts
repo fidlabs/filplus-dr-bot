@@ -200,13 +200,13 @@ async function handleStaleIssues(
 				body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted, and will be closed. Please feel free to apply again when you are ready.`,
 			});
 
-			// await datacapOctokit.rest.issues.update({
-			// 	owner,
-			// 	repo,
-			// 	// eslint-disable-next-line @typescript-eslint/naming-convention
-			// 	issue_number: entry.issue,
-			// 	state: 'closed',
-			// });
+			await datacapOctokit.rest.issues.update({
+				owner,
+				repo,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				issue_number: entry.issue,
+				state: 'closed',
+			});
 
 			const clientName = await parseClientName(datacapOctokit, entry.issue);
 			let allocationConverted = entry.allocation / 1024 ** 4;
