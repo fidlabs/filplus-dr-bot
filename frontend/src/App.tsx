@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import {useContext} from 'react';
 import {DeviceContext} from './components/Context/DeviceContext';
 import BoxWithButton from './components/BoxWithButton';
-import Content from './components/Content';
+import RootList from './components/RootList';
 
 function App() {
 	const {loadLedgerData, ledgerApp} = useContext(DeviceContext);
@@ -20,7 +20,7 @@ function App() {
 				{!ledgerApp ? (
 					<BoxWithButton onClick={loadLedgerData}>Connect wallet</BoxWithButton>
 				) : (
-					<Content />
+					<RootList />
 				)}
 			</Box>
 		</div>

@@ -12,12 +12,15 @@ const RootList = () => {
 	const {submitRemoveDataCap} = useLedgerWallet();
 
 	useEffect(() => {
-		getNotarySignatures().then((response) => {
-			setClientWithBothSignatures(response.clientWithBothSignatures);
-		});
+		getNotaryList()
 	}, []);
+	const getNotaryList = async() => {
+		const response = await getNotarySignatures()
+		setClientWithBothSignatures(response.clientWithBothSignatures)
+	}
 	const onSignRemoveDataCap = async (submitRemoveData: SubmitRemoveData) => {
 		await submitRemoveDataCap(submitRemoveData);
+		await getNotaryList()
 	};
 	if (!clientWithBothSignatures || clientWithBothSignatures.length < 1) return;
 	return (

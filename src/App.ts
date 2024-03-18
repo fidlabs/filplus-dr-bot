@@ -168,20 +168,15 @@ async function handleStaleIssues(
 ) {
 	const staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS);
 	for (const address of addresses) {
-		let allocationBytes: bigint;
-		const entry: {
-			allocationBytes: bigint;
-			allocation: number;
-			date: number;
-			stale?: string | undefined;
-			issue: number;
-		} = await client.hGetAll(address).then((res: Record<string, string>) => ({
+		const res = (await client.hGetAll(address)) as Record<string, string>;
+		console.log(res)
+		const entry = {
 			allocationBytes: BigInt(res.allocation),
 			allocation: Number(res.allocation),
 			date: Number(res.date),
 			stale: res.stale as string | undefined,
 			issue: Number(res.issue),
-		}));
+		};
 
 		if (entry.stale) {
 			continue;
@@ -235,7 +230,6 @@ ${allocationConverted.toFixed(1)} ${allocationUnit}`,
 			});
 
 			await client.hSet(address, {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				issueGov: issue.data.number,
 			});
 
