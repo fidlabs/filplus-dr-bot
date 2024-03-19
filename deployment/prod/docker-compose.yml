@@ -27,6 +27,7 @@ services:
       - CORS_ORIGIN=https://${DOMAIN}
       - VIRTUAL_HOST=${DOMAIN}
       - VIRTUAL_PATH=/api
+      - VIRTUAL_PORT=3000
       - LETSENCRYPT_HOST=${DOMAIN}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
     depends_on:
