@@ -26,13 +26,11 @@ const mnemonic = process.env.MNEMONIC!;
 const staleThreshold = Number(process.env.ALLOCATION_STALE_THRESHOLD_DAYS!);
 const wallet = new LocalWallet(mnemonic);
 
-// Start the Express server
-
 (async () => {
 	// eslint-disable-next-line no-constant-condition
-	console.log("Starting. Verifiers addresses:")
-	console.log("    ", wallet.getAddress(0));
-	console.log("    ", wallet.getAddress(1));
+
+	await verifyNotary(wallet.getAddress(0));
+	await verifyNotary(wallet.getAddress(1));
 
 	while (true) {
 		const client = createClient({
@@ -75,6 +73,7 @@ const wallet = new LocalWallet(mnemonic);
 		}
 
 		await client.disconnect();
+		console.log(`Done, sleeping for ${monitoringInterval}s`);
 		await delay(monitoringInterval * 1000);
 	}
 })();
@@ -126,14 +125,21 @@ async function indexAllocations(
 
 		const prevSeenAllocationStr: string = (await client.hGet(request.address, 'allocation')) ?? "-1";
 		const prevSeenAllocation = BigInt(prevSeenAllocationStr ?? -1);
-		if (prevSeenAllocation === allocation) {
-			console.log(request.address, '- No change in allocation');
-		} else {
+		if (prevSeenAllocation !== allocation) {
 			await client.hSet(request.address, {
 				allocation: allocation.toString(10),
 				date: Date.now(),
 				issue: request.issueNumber,
-				stale: "no",
+				stale: "false",
+				isFinished: "false",
+				txFrom: "",
+				rootKeyAddress2: "",
+				msigTxId: "",
+				issueGov: "",
+				signature1: "",
+				notary1: "",
+				signature2: "",
+				notary2: "",
 			});
 			console.log(
 				'Allocation updated for:',
@@ -175,45 +181,61 @@ async function handleStaleIssues(
 			issue: Number(res.issue),
 		};
 
-		if (entry.stale == "yes") {
+		if (entry.allocation === BigInt(0) || entry.stale == "true") {
 			continue;
 		}
 
 		if (Date.now() - entry.date > staleThreshold * 24 * 60 * 60 * 1000) {
-			await client.hSet(address, { stale: "yes" });
-
 			console.log('Starting removal process for:', address);
 
-			await datacapOctokit.rest.issues.createComment({
-				owner,
-				repo,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				issue_number: entry.issue,
-				body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted and will be closed. Please feel free to apply again when you are ready.`,
-			});
+			const sigs = await signNotaries(address, entry.allocation);
 
-			await datacapOctokit.rest.issues.update({
-				owner,
-				repo,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				issue_number: entry.issue,
-				state: 'closed',
-			});
+			await closeApplicationIssue(datacapOctokit, entry.issue);
 
 			const clientName = await parseClientName(datacapOctokit, entry.issue);
-			let allocationConverted = Number(entry.allocation / BigInt(1024 ** 4));
-			let allocationUnit = 'TiB';
-			if (allocationConverted > 1024) {
-				allocationConverted /= 1024;
-				allocationUnit = 'PiB';
-			}
+			const issueGov = await createGovIssue(govOctokit, entry.issue, clientName, address, entry.allocation);
 
-			const issue = await govOctokit.rest.issues.create({
-				owner: govOwner,
-				repo: govRepo,
-				title: `DataCap Removal for Issue #${entry.issue}`,
-				body: `### Client Application URL or Application Number
-[${entry.issue}](https://github.com/${owner}/${repo}/issues/${entry.issue})
+			await client.hSet(address, {
+				issueGov,
+				stale: "true",
+				...sigs
+			});
+		}
+	}
+}
+
+async function closeApplicationIssue(datacapOctokit: Octokit, issue_number: number) {
+	await datacapOctokit.rest.issues.createComment({
+		owner,
+		repo,
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		issue_number,
+		body: `This application has been stale for ${staleThreshold} days. This application will have it’s allocation retracted and will be closed. Please feel free to apply again when you are ready.`,
+	});
+
+	await datacapOctokit.rest.issues.update({
+		owner,
+		repo,
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		issue_number,
+		state: 'closed',
+	});
+}
+
+async function createGovIssue(govOctokit: Octokit, issue_number: number, clientName: string, address: string, allocation: bigint): Promise<number> {
+	let allocationConverted = Number(allocation / BigInt(1024 ** 4));
+	let allocationUnit = 'TiB';
+	if (allocationConverted > 1024) {
+		allocationConverted /= 1024;
+		allocationUnit = 'PiB';
+	}
+
+	const issue = await govOctokit.rest.issues.create({
+		owner: govOwner,
+		repo: govRepo,
+		title: `DataCap Removal for Issue #${issue_number}`,
+		body: `### Client Application URL or Application Number
+[${issue_number}](https://github.com/${owner}/${repo}/issues/${issue_number})
 
 ### Client Name
 ${clientName}
@@ -223,28 +245,17 @@ ${address}
 
 ### Amount of DataCap to be removed
 ${allocationConverted.toFixed(1)} ${allocationUnit}`,
-				labels: ['DcRemoveRequest'],
-			});
-
-			await client.hSet(address, {
-				issueGov: issue.data.number,
-			});
-
-			try {
-				await signNotaries(address, entry.allocation, client)
-				console.log('Notaries signed for client:', address);
-			} catch (e) {
-				console.error(e, 'Failed to signNotaries for address:', address);
-			}
-		}
-	}
+		labels: ['DcRemoveRequest'],
+	});
+	return issue.data.number;
 }
+
+
 
 async function signNotaries(
 	clientAddress: string,
 	amount: bigint,
-	client: RedisClientType,
-) {
+): Promise<{ notary1: string, notary2: string, signature1: string, signature2: string }> {
 	const api = new LotusApi(glifUrl, glifToken);
 	const clientAddressId = await api.addressId(clientAddress);
 	const notary1 = await api.addressId(wallet.getAddress(0));
@@ -264,12 +275,29 @@ async function signNotaries(
 		proposalId2,
 	);
 
-	await client.hSet(clientAddress, {
+	return {
 		signature1,
 		notary1,
 		signature2,
 		notary2,
-	});
+	};
+}
+
+async function verifyNotary(maybeNotary: string) {
+	const api = new LotusApi(glifUrl, glifToken);
+	let status = null;
+	try {
+		status = await api.getVerifierStatus(maybeNotary);
+	} catch(e: any) {
+		if (e?.message !== "actor not found") {
+			throw e;
+		}
+	}
+
+	if(status === null) {
+		console.error(`${maybeNotary} isn't a verifier onchain. Update your MNEMONIC or make it a verifier. Exiting...`);
+		process.exit(1);
+	}
 }
 
 async function delay(ms: number) {

@@ -39,6 +39,11 @@ export class LotusApi {
 
     async getVerifiedClientStatus(clientAddress: string): Promise<bigint> {
         const datacap = await this.client.state.verifiedClientStatus(clientAddress);
-        return BigInt(datacap);
+        return BigInt(datacap ?? 0);
+    }
+
+    async getVerifierStatus(address: string): Promise<bigint | null> {
+        const status = await this.client.state.verifierStatus(address)
+        return status !== null ? BigInt(status) : null;
     }
 }

@@ -52,14 +52,12 @@ export const postRootKeySignatures = async (
 export const getClientWithBothSignatures = async () => {
 	const client = await createClient({url: redisUrl}).connect();
 	const members = await client.sMembers(redisDatacapAddressesSet);
-	console.log(members);
 	const clientWithBothSignatures = await Promise.all(
 		members.map(async (member) => {
 			const filecoinClient = await client.hGetAll(member);
 			const checkIfSignature
 				= filecoinClient.signature1 && filecoinClient.signature2;
-			console.log(filecoinClient)
-			if (checkIfSignature && !filecoinClient.isFinished) {
+			if (checkIfSignature && filecoinClient.isFinished !== "true") {
 				return {...filecoinClient, member};
 			}
 		}),

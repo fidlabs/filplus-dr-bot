@@ -24,6 +24,11 @@ services:
     restart: always
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - CORS_ORIGIN=https://${DOMAIN}
+      - VIRTUAL_HOST=${DOMAIN}
+      - VIRTUAL_PATH=/api
+      - LETSENCRYPT_HOST=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
     depends_on:
       - redis
     volumes:
@@ -42,6 +47,7 @@ services:
       - LETSENCRYPT_HOST=${DOMAIN}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
       - VITE_APP_URL=${DOMAIN}/api/
+      - VIRTUAL_PATH=/
 
   nginx-proxy:
     image: nginxproxy/nginx-proxy:1.5

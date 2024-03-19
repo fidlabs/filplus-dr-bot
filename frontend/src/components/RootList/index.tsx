@@ -48,9 +48,9 @@ const RootList = () => {
 					msigTxId,
 					clientAddress: member,
 					issue,
-				}; // removalProposalID BRAK
+				};
 
-				if (parseInt(stale) !== 1) return;
+				if (stale !== "true") return;
 				return (
 					<TableRow
 						key={member + allocation}

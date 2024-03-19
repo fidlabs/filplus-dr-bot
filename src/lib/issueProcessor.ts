@@ -89,8 +89,8 @@ const parseDataCapRequest = (
 					(paragraph.children[0] as Text).value,
 				);
 			} else {
-				console.log('invalid case:');
-				console.log(children);
+				console.error("'DataCap Allocation requested' with invalid format detected. Details:")
+				console.error(children);
 			}
 		}
 	}

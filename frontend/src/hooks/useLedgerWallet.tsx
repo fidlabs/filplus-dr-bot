@@ -92,11 +92,6 @@ const useLedgerWallet = () => {
 			const client = await verifyAPI.actorAddress(clientAddress);
 
 			if (!msigTxId) {
-				verifyAPI.encodeRemoveDataCapParameters({
-					verifiedClient: client,
-					dataCapAmount: allocation,
-					removalProposalID: [0],
-				});
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
 					allocation,
