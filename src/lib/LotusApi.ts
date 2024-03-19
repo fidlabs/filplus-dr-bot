@@ -37,8 +37,8 @@ export class LotusApi {
         return matchedEntry[0][1][0];
     }
 
-    async getVerifiedClientStatus(clientAddress: string): Promise<number> {
+    async getVerifiedClientStatus(clientAddress: string): Promise<bigint> {
         const datacap = await this.client.state.verifiedClientStatus(clientAddress);
-        return Number(datacap);
+        return BigInt(datacap);
     }
 }

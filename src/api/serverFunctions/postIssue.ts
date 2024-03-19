@@ -1,5 +1,5 @@
 import fs from 'fs';
-import {getOctokitInstance} from '../octokitBuilder.js';
+import {getOctokitInstance} from '../../lib/octokitBuilder.js';
 import {type Octokit} from '@octokit/rest';
 import * as dotenv from 'dotenv';
 dotenv.config();

@@ -1,6 +1,6 @@
 import {type Octokit} from '@octokit/rest';
-import {type Issue} from './types/issue.js';
-import {type DataCapRequest} from './types/request.js';
+import {type Issue} from '../types/issue.js';
+import {type DataCapRequest} from '../types/request.js';
 import {remark} from 'remark';
 import {
 	type Heading,

@@ -1,6 +1,6 @@
 import {Octokit} from '@octokit/rest';
 import {createAppAuth} from '@octokit/auth-app';
-import {type Auth} from './types/auth.js';
+import {type Auth} from '../types/auth.js';
 import fetch from 'node-fetch';
 
 export async function getOctokitInstance(

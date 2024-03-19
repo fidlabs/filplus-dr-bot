@@ -46,13 +46,13 @@ const useLedgerWallet = () => {
 			Params: '',
 		},
 		// co z indexAccount?
-		indexAccount: number,
+		indexAccount?: number,
 	) => {
 		const serializedMessage = transactionSerialize(filecoinMessage);
 		//await this.ledgerApp.sign(`m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`, Buffer.from(serializedMessage, 'hex'))
 		const signedMessage = handleErrors(
 			await ledgerApp.sign(
-				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount}`,
+				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount ?? "0"}`,
 				Buffer.from(serializedMessage, 'hex'),
 			),
 		);
