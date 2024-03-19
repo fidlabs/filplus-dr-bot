@@ -101,13 +101,10 @@ const useLedgerWallet = () => {
 					ledgerApp,
 					currentAccount,
 				);
-				const receipt = await verifyAPI.stateWaitMessage(txCid);
-				const msigTxId = receipt.ReturnDec.TxnID;
+				await verifyAPI.stateWaitMessage(txCid); // wait for tx to get confirmed
 				await addRootKeySignatures({
-					issueNumber: issue,
-					msigTxId,
+					txCid,
 					clientAddress,
-					txFrom: currentAccount,
 				});
 			} else {
 				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
@@ -141,9 +138,7 @@ const useLedgerWallet = () => {
 				) {
 					await addRootKeySignatures({
 						clientAddress,
-						issueNumber: issue,
-						msigTxId,
-						rootKeyAddress2: currentAccount,
+						txCid: approveId,
 					});
 				}
 			}
