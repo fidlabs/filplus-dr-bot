@@ -1,6 +1,6 @@
 import {type Octokit} from '@octokit/rest';
-import {type Issue} from './types/issue.js';
-import {type DataCapRequest} from './types/request.js';
+import {type Issue} from '../types/issue.js';
+import {type DataCapRequest} from '../types/request.js';
 import {remark} from 'remark';
 import {
 	type Heading,
@@ -89,8 +89,8 @@ const parseDataCapRequest = (
 					(paragraph.children[0] as Text).value,
 				);
 			} else {
-				console.log('invalid case:');
-				console.log(children);
+				console.error("'DataCap Allocation requested' with invalid format detected. Details:")
+				console.error(children);
 			}
 		}
 	}

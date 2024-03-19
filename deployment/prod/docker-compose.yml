@@ -1,0 +1,79 @@
+version: '3.3'
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - redisdata:/root/redis
+      - redisconf:/usr/local/etc/redis/redis.conf
+
+  monitor:
+    image: ghcr.io/fidlabs/filplus-datacap-monitor:0.1.0
+    restart: always
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+     - ./github_app_private_key.pem:/github_app_private_key.pem:ro
+    env_file:
+      - backend.env
+
+  server:
+    image: ghcr.io/fidlabs/filplus-datacap-monitor:0.1.0
+    restart: always
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CORS_ORIGIN=https://${DOMAIN}
+      - VIRTUAL_HOST=${DOMAIN}
+      - VIRTUAL_PATH=/api
+      - VIRTUAL_PORT=3000
+      - LETSENCRYPT_HOST=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    depends_on:
+      - redis
+    volumes:
+     - ./github_app_private_key.pem:/github_app_private_key.pem:ro
+    env_file:
+      - backend.env
+    command: npm run server
+
+  frontend:
+    image: ghcr.io/fidlabs/filplus-dr-bot-frontend:0.1.0
+    restart: always
+    env_file:
+      - frontend.env
+    environment:
+      - VIRTUAL_HOST=${DOMAIN}
+      - LETSENCRYPT_HOST=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - VITE_API_URL=https://${DOMAIN}/api/
+      - VIRTUAL_PATH=/
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:1.5
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    restart: always
+
+  letsencrypt-nginx-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    volumes_from: 
+      - nginx-proxy
+    restart: always
+    depends_on:
+      - nginx-proxy
+
+volumes:
+  redisdata:
+  redisconf:
+  certs:

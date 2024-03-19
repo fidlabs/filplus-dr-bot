@@ -145,7 +145,6 @@ export class VerifyAPI {
 			signature2
 		);
 		const tx = this.methods.rootkey.propose(removeDatacapRequest);
-		console.log('Debug this: ', tx.params.toString('hex'));
 		const res = await this.methods.sendTx(
 			this.client,
 			indexAccount,

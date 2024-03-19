@@ -30,126 +30,6 @@ function make(testnet) {
 		return res;
 	}
 
-	/*
-
-  function min(a, b) {
-    if (a < b) return a
-    else return b
-  }
-
-  function max(a, b) {
-    if (a > b) return a
-    else return b
-  }
-
-  const gasOveruseNum = 11n
-  const gasOveruseDenom = 10n
-
-  function computeGasToBurn(gasUsed, gasLimit) {
-    if (gasUsed === 0n) {
-      return gasLimit
-    }
-
-    // over = gasLimit/gasUsed - 1 - 0.1
-    // over = min(over, 1)
-    // gasToBurn = (gasLimit - gasUsed) * over
-
-    // so to factor out division from `over`
-    // over*gasUsed = min(gasLimit - (11*gasUsed)/10, gasUsed)
-    // gasToBurn = ((gasLimit - gasUsed)*over*gasUsed) / gasUsed
-    const overuse = gasUsed * gasOveruseNum / gasOveruseDenom
-    let over = gasLimit - overuse
-
-    if (over < 0n) {
-      return 0n
-    }
-
-    if (over > gasUsed) {
-      over = gasUsed
-    }
-
-    return (gasLimit - gasUsed - over) / gasUsed
-  }
-
-  function gasCalcTxFee(
-    gasFeeCap,
-    gasPremium,
-    gasLimit,
-    baseFee,
-    gasUsed,
-  ) {
-    // compute left side
-    const totalGas = gasUsed + computeGasToBurn(gasUsed, gasLimit)
-    const minBaseFeeFeeCap = min(baseFee, gasFeeCap)
-    const leftSide = totalGas * minBaseFeeFeeCap
-
-    // compute right side
-    const minTip = min(gasFeeCap - baseFee, gasPremium)
-    const rightSide = gasLimit * max(0n, minTip)
-
-    return leftSide + rightSide
-  }
-
-  async function estimateGas(client, maxfee, { to, method, params, value, gas, nonce, from }) {
-    const head = await client.chainHead()
-    const baseFee = BigInt(head.Blocks[0].ParentBaseFee)
-
-    const estimation_msg = {
-      To: to,
-      From: from,
-      Nonce: nonce,
-      Value: value.toString() || '0',
-      GasFeeCap: '0',
-      GasPremium: '0',
-      GasLimit: gas || 0,
-      Method: method,
-      Params: params.toString('base64'),
-    }
-
-    const res = await client.gasEstimateMessageGas(estimation_msg, { MaxFee: maxfee.toString() }, head.Cids)
-    // console.log(res)
-
-    const msg = {
-      to: to,
-      from: from,
-      nonce: nonce,
-      value: value.toString() || '0',
-      gasfeecap: res.GasFeeCap,
-      gaspremium: res.GasPremium,
-      gaslimit: res.GasLimit,
-      method: method,
-      params: params,
-    }
-
-    const msg2 = { ...msg, params: params.toString('base64') }
-
-    const { ExecutionTrace: { MsgRct: { GasUsed } } } = await client.stateCall(msg2, head.Cids)
-    const fee = gasCalcTxFee(BigInt(res.GasFeeCap), BigInt(res.GasPremium), BigInt(res.GasLimit), baseFee, BigInt(GasUsed))
-    // console.log("got fee", fee)
-
-    return [msg, fee]
-  }
-
-  async function iterateGas(client, msg) {
-    let maxfee = BigInt(Math.pow(Number(BigInt(10)), Number(BigInt(10))))
-    let saved_error
-    const maxFeeComparison = BigInt(2) * BigInt(Math.pow(Number(BigInt(10)), Number(BigInt(18))))
-    while (maxfee < maxFeeComparison) {
-      try {
-        maxfee = maxfee * 2n
-        const [res, fee] = await estimateGas(client, maxfee, msg)
-        const ratio = 100n * fee / maxfee
-        console.log('fee', fee, 'max', maxfee, 'ratio', ratio)
-        if (ratio < 10n) {
-          return res
-        }
-      } catch (err) {
-        saved_error = err
-      }
-    }
-    throw saved_error
-  }
-  */
 	const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
 	async function signTx(client, indexAccount, walletContext, tx, address) {
 		await client.chainHead();
@@ -180,8 +60,6 @@ function make(testnet) {
 	// returns tx hash
 	async function sendTx(client, indexAccount, walletContext, obj, address) {
 		const tx = await signTx(client, indexAccount, walletContext, obj, address);
-		console.log('tx2', tx);
-		console.log('going to send', tx);
 
 		return await client.mpoolPush(tx);
 	}
@@ -204,7 +82,7 @@ function make(testnet) {
 			const res = await client.chainGetMessage({'/': cid});
 			return res;
 		} catch (error) {
-			// console.log(error)
+			console.error(error)
 		}
 	}
 
@@ -213,7 +91,7 @@ function make(testnet) {
 			const res = await client.stateWaitMsg({'/': cid}, 1);
 			return res;
 		} catch (error) {
-			//  console.log(error)
+			console.error(error)
 		}
 	}
 
@@ -264,7 +142,6 @@ function make(testnet) {
 	}
 
 	function encodePropose(msig, msg) {
-		// console.log("encpro", [signer.addressAsBytes(msg.to), encodeBig(msg.value || 0), msg.method, msg.params])
 		return {
 			to: msig,
 			method: 2,
@@ -314,7 +191,6 @@ function make(testnet) {
 	}
 
 	function decode(schema, data) {
-		// console.log(schema, data)
 		if (schema === 'address' && typeof data === 'string') {
 			return bytesToAddress(Buffer.from(data, 'base64'), true);
 		}
@@ -482,7 +358,6 @@ function make(testnet) {
 				} else {
 					params = encode(method.input, data);
 				}
-				// console.log("params", params)
 				return {
 					to: address,
 					value: 0n,
