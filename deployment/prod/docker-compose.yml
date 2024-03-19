@@ -47,7 +47,7 @@ services:
       - VIRTUAL_HOST=${DOMAIN}
       - LETSENCRYPT_HOST=${DOMAIN}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
-      - VITE_APP_URL=${DOMAIN}/api/
+      - VITE_API_URL=https://${DOMAIN}/api/
       - VIRTUAL_PATH=/
 
   nginx-proxy:
