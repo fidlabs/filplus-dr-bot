@@ -193,10 +193,18 @@ async function handleStaleIssues(
 			await closeApplicationIssue(datacapOctokit, entry.issue);
 
 			const clientName = await parseClientName(datacapOctokit, entry.issue);
-			const issueGov = await createGovIssue(govOctokit, entry.issue, clientName, address, entry.allocation);
+			const {issueGov, linkIssueGov} = await createGovIssue(
+				govOctokit,
+				entry.issue,
+				clientName,
+				address,
+				entry.allocation,
+			);
 
 			await client.hSet(address, {
+				clientName,
 				issueGov,
+				linkIssueGov,
 				stale: "true",
 				...sigs
 			});
@@ -222,7 +230,13 @@ async function closeApplicationIssue(datacapOctokit: Octokit, issue_number: numb
 	});
 }
 
-async function createGovIssue(govOctokit: Octokit, issue_number: number, clientName: string, address: string, allocation: bigint): Promise<number> {
+async function createGovIssue(
+	govOctokit: Octokit,
+	issue_number: number,
+	clientName: string,
+	address: string,
+	allocation: bigint,
+): Promise<{issueGov: number; linkIssueGov: string}> {
 	let allocationConverted = Number(allocation / BigInt(1024 ** 4));
 	let allocationUnit = 'TiB';
 	if (allocationConverted > 1024) {
@@ -247,10 +261,12 @@ ${address}
 ${allocationConverted.toFixed(1)} ${allocationUnit}`,
 		labels: ['DcRemoveRequest'],
 	});
-	return issue.data.number;
+
+	return {
+		issueGov: issue.data.number,
+		linkIssueGov: `https://github.com/${owner}/${repo}/issues/${issue_number}`,
+	};
 }
-
-
 
 async function signNotaries(
 	clientAddress: string,

@@ -10,4 +10,6 @@ export type DataCap = {
   signature2?: string,
   msigTxId?: string,
   txFrom?: string,
+  clientName: string;
+  issueGov: string;
 }

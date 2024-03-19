@@ -109,7 +109,7 @@ const useLedgerWallet = () => {
 					issueNumber: issue,
 					msigTxId,
 					clientAddress,
-					txFrom: await verifyAPI.actorAddress(currentAccount),
+					txFrom: currentAccount,
 				});
 			} else {
 				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
@@ -145,7 +145,7 @@ const useLedgerWallet = () => {
 						clientAddress,
 						issueNumber: issue,
 						msigTxId,
-						rootKeyAddress2: await verifyAPI.actorAddress(currentAccount),
+						rootKeyAddress2: currentAccount,
 					});
 				}
 			}
