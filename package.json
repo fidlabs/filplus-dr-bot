@@ -29,6 +29,7 @@
 		"docker": "docker compose down && docker compose build && docker compose up"
 	},
 	"dependencies": {
+		"@glif/filecoin-address": "^3.0.4",
 		"@ipld/dag-cbor": "^9.2.0",
 		"@octokit/plugin-rest-endpoint-methods": "^10.2.0",
 		"@octokit/rest": "^20.0.2",

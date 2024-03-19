@@ -1,6 +1,7 @@
 import { decode } from '@ipld/dag-cbor';
 import { parseAddress } from '@zondax/filecoin-signing-tools/js';
 import { HttpJsonRpcConnector, LotusClient } from 'filecoin.js';
+import { Message, MsgLookup } from 'filecoin.js/builds/dist/providers/Types.js';
 
 function isEqualByteArray(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length != b.length) return false;
@@ -21,7 +22,13 @@ export class LotusApi {
     }
 
     async addressId(address: string): Promise<string> {
-        return await this.client.state.lookupId(address);
+        const id = await this.client.state.lookupId(address);
+        return 'f' + id.substring(1);
+    }
+
+    async address(id: string): Promise<string> {
+        const addr = await this.client.state.accountKey(id);
+        return 'f' + addr.substring(1);
     }
 
     async getProposalId(verifierAddress: string, clientAddress: string): Promise<number> {
@@ -45,5 +52,13 @@ export class LotusApi {
     async getVerifierStatus(address: string): Promise<bigint | null> {
         const status = await this.client.state.verifierStatus(address)
         return status !== null ? BigInt(status) : null;
+    }
+
+    async getMsg(cid: string): Promise<Message> {
+        return this.client.chain.getMessage({"/": cid});
+    }
+
+    async waitMsg(cid: string): Promise<MsgLookup> {
+        return this.client.state.waitMsg({ "/": cid }, 1);
     }
 }
