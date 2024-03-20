@@ -15,12 +15,21 @@ import {DeviceContext} from '../Context/DeviceContext';
 
 const RootList = () => {
 	const [pendingIssues, setPendingIssues] = useState<DataCap[]>([]);
-	const {submitRemoveDataCap} = useLedgerWallet();
+	const {submitRemoveDataCap, actorAddress} = useLedgerWallet();
 	const {currentAccount} = useContext(DeviceContext);
+	const [currentId, setCurrentId] = useState<string | null>(null);
 
 	useEffect(() => {
 		getNotaryList();
 	}, []);
+	useEffect(() => {
+		setCurrentId(null);
+		(async () => {
+			if(currentAccount)
+				setCurrentId(await actorAddress(currentAccount));
+		})()
+	}, [currentAccount]);
+
 	const getNotaryList = async () => {
 		const issues = await getPendingIssues();
 		setPendingIssues(issues);
@@ -78,7 +87,7 @@ const RootList = () => {
 					};
 
 					if (stale !== 'true') return;
-					const isAlreadySignByUser = txFrom === currentAccount;
+					const isAlreadySignByUser = txFrom === currentId;
 					return (
 						<TableRow
 							key={member + allocation}
