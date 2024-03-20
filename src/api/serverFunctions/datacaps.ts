@@ -71,6 +71,9 @@ const handleFirstSignature = async (declaredClientAddress: string, api: LotusApi
 	const client = await createClient({url: redisUrl}).connect();
 	const expectedRaw = await client.hGetAll(clientAddress);
 
+	if (expectedRaw.isFinished === "true")
+		throw new Error("Can't submit signature for already processed issue");
+
 	if (parsedProposal.amountToRemove !== BigInt(expectedRaw.allocation))
 		throw new Error("Proposed datacap amount to remove doesn't match");
 
@@ -114,8 +117,12 @@ const handleSecondSignature = async (clientAddress: string, msg: Message, msgRet
 		throw new Error("Invalid remove params");
 
 	const client = await createClient({url: redisUrl}).connect();
+	const isFinished = await client.hGet(clientAddress, 'isFinished');
 	const expectedMsigId = await client.hGet(clientAddress, 'msigTxId');
 	const approvedMsigId = params[0];
+
+	if (isFinished === "true")
+		throw new Error("Can't submit signature for already processed issue");
 
 	if (!expectedMsigId || approvedMsigId != parseInt(expectedMsigId))
 		throw new Error("Approve for unexpected multisig transaction");
