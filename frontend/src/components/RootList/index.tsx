@@ -3,7 +3,14 @@ import {DataCap} from '../../types/DataCap';
 import {getPendingIssues} from '../../api';
 import useLedgerWallet from '../../hooks/useLedgerWallet';
 import {SubmitRemoveData} from '../../types/SubmitRemoveDataCap';
-import {TableCell, TableRow, TableHead, Button, TableBody} from '@mui/material';
+import {
+	TableCell,
+	TableRow,
+	TableHead,
+	Button,
+	TableBody,
+	Box,
+} from '@mui/material';
 import {DeviceContext} from '../Context/DeviceContext';
 
 const RootList = () => {
@@ -32,7 +39,7 @@ const RootList = () => {
 
 	const cellStyle = {border: 'none'};
 	return (
-		<>
+		<Box>
 			<TableHead>
 				<TableRow style={{display: 'flex', gap: '50px'}}>
 					<TableCell style={cellStyle}>Client Name</TableCell>
@@ -56,7 +63,7 @@ const RootList = () => {
 						txFrom,
 						msigTxId,
 						clientName,
-						issueGov,
+						linkIssueGov,
 					} = pendingIssue;
 					const submitRemoveData: SubmitRemoveData = {
 						allocation: BigInt(allocation),
@@ -81,14 +88,17 @@ const RootList = () => {
 							<TableCell style={cellStyle}>{member}</TableCell>
 							<TableCell style={cellStyle}>{allocation}</TableCell>
 							<TableCell style={cellStyle}>
-								<a href={issueGov}>Issue Link</a>
+								<a href={linkIssueGov}>Issue Link</a>
 							</TableCell>
 							<TableCell style={cellStyle}>{txFrom ? '1/2' : '0/2'}</TableCell>
 							<TableCell style={cellStyle}>
 								<Button
 									disabled={isAlreadySignByUser}
 									variant="contained"
-									onClick={() => !isAlreadySignByUser && onSignRemoveDataCap(submitRemoveData)}
+									onClick={() =>
+										!isAlreadySignByUser &&
+										onSignRemoveDataCap(submitRemoveData)
+									}
 								>
 									{isAlreadySignByUser ? 'Already Signed' : 'Sign'}
 								</Button>
@@ -97,7 +107,7 @@ const RootList = () => {
 					);
 				})}
 			</TableBody>
-		</>
+		</Box>
 	);
 };
 

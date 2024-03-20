@@ -1,9 +1,7 @@
 import {useContext} from 'react';
 import {mapSeries} from 'bluebird';
 import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
-import {
-	LotusMessage,
-} from '../types/TransactionRaw';
+import {LotusMessage} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
@@ -52,7 +50,7 @@ const useLedgerWallet = () => {
 		//await this.ledgerApp.sign(`m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`, Buffer.from(serializedMessage, 'hex'))
 		const signedMessage = handleErrors(
 			await ledgerApp.sign(
-				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount ?? "0"}`,
+				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount ?? '0'}`,
 				Buffer.from(serializedMessage, 'hex'),
 			),
 		);
@@ -124,7 +122,7 @@ const useLedgerWallet = () => {
 				const msigTx = {
 					id: msigTxId,
 					tx: {
-						from: txFrom, // ID of account that sent proposeRemoveDataCap - a.k.a. first root key holder to sign
+						from: await verifyAPI.actorAddress(txFrom), // ID of account that sent proposeRemoveDataCap - a.k.a. first root key holder to sign
 						...removeDatacapRequest,
 					},
 				};
@@ -133,7 +131,7 @@ const useLedgerWallet = () => {
 					msigTx,
 					indexAccount,
 					ledgerApp,
-					currentAccount
+					currentAccount,
 				);
 				const responseData = await verifyAPI.stateWaitMessage(approveId);
 
