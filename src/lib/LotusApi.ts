@@ -38,10 +38,11 @@ export class LotusApi {
         const state = await this.client.state.readState('f06');
         const idsCid: { "/": string } = state.State.RemoveDataCapProposalIDs;
         const rawIds = await this.client.chain.readObj(idsCid);
-        const decoded: any = decode(Buffer.from(rawIds, 'base64'));
-        const matchedEntry = decoded[1].find((entry: any) => isEqualByteArray(entry[0][0], key));
+        const decoded: [any, Array<Array<[Uint8Array, [number]]>>] = decode(Buffer.from(rawIds, 'base64'));
+        const allEntries = decoded[1].flatMap((entry) => entry);
+        const matchedEntry = allEntries.find(([entry_key]) => isEqualByteArray(entry_key, key))
         if (!matchedEntry) return 0;
-        return matchedEntry[0][1][0];
+        return matchedEntry[1][0];
     }
 
     async getVerifiedClientStatus(clientAddress: string): Promise<bigint> {
