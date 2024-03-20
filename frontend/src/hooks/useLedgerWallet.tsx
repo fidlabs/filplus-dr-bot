@@ -57,6 +57,8 @@ const useLedgerWallet = () => {
 		return await generateSignedMessage(filecoinMessage, signedMessage);
 	};
 
+	const verifyAPI = createVerifyAPI(sign, getAccounts);
+
 	const submitRemoveDataCap = async (dataToSignRootKey: SubmitRemoveData) => {
 		const {
 			allocation,
@@ -71,7 +73,6 @@ const useLedgerWallet = () => {
 		} = dataToSignRootKey;
 		try {
 			setisLoadingTrue();
-			const verifyAPI = createVerifyAPI(sign, getAccounts);
 
 			ledgerApp.getAccounts = async () => {
 				const paths = [];
@@ -150,7 +151,13 @@ const useLedgerWallet = () => {
 		}
 	};
 
+	const actorAddress = async (address: string) => {
+		const id = await verifyAPI.actorAddress(address);
+        return 'f' + id.substring(1);
+	}
+
 	return {
+		actorAddress,
 		getAccounts,
 		sign,
 		submitRemoveDataCap,
