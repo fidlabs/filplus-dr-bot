@@ -97,7 +97,7 @@ const handleFirstSignature = async (declaredClientAddress: string, api: LotusApi
 		issueNumber: issueGov!,
 		txFrom: msg.From,
 		isLastComment: false,
-		msigTxId: msgReturn.TxnId,
+		msigTxId: msgReturn.TxnID,
 	});
 }
 

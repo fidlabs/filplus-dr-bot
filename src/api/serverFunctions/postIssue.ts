@@ -34,7 +34,7 @@ export const postIssue = async (body: Body) => {
 		body: `
 ### Approve By Root Key
 
-**Msig Address:** ${msigTxId}
+**Msig Pending TxID:** ${msigTxId}
 		
 **Signer Address:** ${txFrom}
 		`,
