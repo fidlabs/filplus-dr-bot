@@ -8,7 +8,7 @@ import Loader from "./components/Loader";
 import Layout from "./components/Layout/Layout";
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root')!
+  document.getElementById('root') as HTMLElement
 );
 
 // window.buffer = window.buffer

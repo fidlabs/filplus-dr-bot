@@ -11,6 +11,7 @@
     "@filecoin-shipyard/lotus-client-rpc": "^1.2.0",
     "@filecoin-shipyard/lotus-client-schema": "^4.2.0",
     "@glif/filecoin-address": "1.1.0",
+    "@ipld/dag-cbor": "^8.0.0",
     "@ledgerhq/hw-transport-webusb": "^6.28.4",
     "@mui/icons-material": "^5.15.13",
     "@mui/material": "^5.15.12",
@@ -31,12 +32,11 @@
     "path": "^0.12.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1",
+    "react-scripts": "^4",
     "stream": "^0.0.2",
     "stream-browserify": "^3.0.0",
     "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4",
-    "webpack": "^5.91.0"
+    "web-vitals": "^2.1.4"
   },
   "devDependencies": {
     "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
@@ -51,14 +51,13 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "buffer": "^6.0.3",
     "node-stdlib-browser": "^1.2.0",
-    "ts-loader": "^9.5.1",
-    "webpack-cli": "^5.1.4"
+    "react-app-rewired": "^2.2.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "rm -rf ./build && react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "react-app-rewired start",
+    "build": "rm -rf ./build && react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
     "extends": [

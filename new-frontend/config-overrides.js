@@ -5,7 +5,8 @@ const {
     NodeProtocolUrlPlugin
 } = require('node-stdlib-browser/helpers/webpack/plugin');
 
-module.exports = function (webpackEnv) {
+module.exports = function override(config, env) {
+    // New config, e.g. config.plugins.push...
     return {
         resolve: {
             extensions: ['.tsx', '.ts', '.js'],
@@ -14,14 +15,17 @@ module.exports = function (webpackEnv) {
                 "assert": require.resolve("assert"),
                 "stream": require.resolve("stream"),
                 "buffer": require.resolve('buffer/'),
-            }
+            },
+            ...config.resolve
         },
         plugins: [
             new NodeProtocolUrlPlugin(),
             new webpack.ProvidePlugin({
                 process: stdLibBrowser.process,
                 Buffer: [stdLibBrowser.buffer, 'Buffer']
-            })
+            }),
+            ...config.plugins
         ],
+        ...config
     }
 }
