@@ -5,39 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cbc6d814-3341-4c7d-a292-446004657ddf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/api/errorHandler.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/api/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/assets/react.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/BoxWithButton/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Context/ContextTypes.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Context/DeviceContext.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Context/LoaderContext.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/Footer/Footer.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/Footer/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/Header/Header.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/Header/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/Layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/SelectAccount.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Layout/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Loader/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/RootList/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/filecoin-signing-tools/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/filecoin-verifier-tools/VerifyAPI.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/filecoin-verifier-tools/hamt.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/filecoin-verifier-tools/methods.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/functions/generateSignMessage.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/functions/handleErrors.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/functions/verifyApi.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hooks/useLedgerWallet.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types.d.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/Auth.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/ConfigLotusNode.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/CreateVerifyApi.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/DataCap.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/Signature.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/SubmitRemoveDataCap.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/TransactionRaw.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/WalletLedger.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/filecoin-verifier-tools/methods.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/filecoin-verifier-tools/methods.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/package.json" afterDir="false" />
@@ -47,6 +14,9 @@
       <change beforePath="$PROJECT_DIR$/../frontend/src/hooks/useLedgerWallet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/hooks/useLedgerWallet.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/tsconfig.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/webpack.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +28,29 @@
   </component>
   <component name="GitToolBoxStore">
     <option name="projectConfigVersion" value="5" />
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="webpackify" />
+                    <option name="lastUsedInstant" value="1711011472" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1711011471" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$/.." />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -75,7 +68,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "webpackify",
     "js.ns.project": "true",
     "js.ns.project.flavor": "TypeScript",
     "last_opened_file_path": "/Users/tomaszplocic/code/filplus-dr-bot/new-frontend/src",
@@ -85,7 +78,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "editor.preferences.fonts.default",
-    "ts.external.directory.path": "/Users/tomaszplocic/code/filplus-dr-bot/new-frontend/node_modules/typescript/lib",
+    "ts.external.directory.path": "/Applications/WebStorm.app/Contents/plugins/javascript-impl/jsLanguageServicesImpl/external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -94,6 +87,7 @@
       <map>
         <entry key="com.intellij.reactbuddy.reactComponents" value="false" />
         <entry key="com.intellij.reactbuddy.reactInspector" value="false" />
+        <entry key="com.intellij.reactbuddy.storybook" value="false" />
       </map>
     </option>
   </component>
@@ -116,6 +110,8 @@
       <updated>1691096153104</updated>
       <workItem from="1710932706799" duration="388000" />
       <workItem from="1710933099352" duration="9573000" />
+      <workItem from="1711011461403" duration="2285000" />
+      <workItem from="1711035149411" duration="223000" />
     </task>
     <servers />
   </component>

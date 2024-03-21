@@ -7,23 +7,6 @@ const {
 
 module.exports = function (webpackEnv) {
     return {
-        context: __dirname,
-        entry: './src/index.tsx',
-        module: {
-            rules: [
-                {
-                    test: /\.tsx?$/,
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['@babel/preset-env','@babel/react'],
-                            plugins: ['@babel/proposal-class-properties', '@babel/plugin-proposal-object-rest-spread', '@babel/plugin-syntax-dynamic-import']
-                        }
-                    },
-                    exclude: /node_modules/,
-                },
-            ],
-        },
         resolve: {
             extensions: ['.tsx', '.ts', '.js'],
             alias: stdLibBrowser,
