@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="cbc6d814-3341-4c7d-a292-446004657ddf" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/api/errorHandler.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/api/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/assets/react.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/BoxWithButton/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Context/ContextTypes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Context/DeviceContext.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Context/LoaderContext.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/Footer/Footer.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/Footer/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/Header/Header.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/Header/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/Layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/SelectAccount.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Layout/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Loader/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/RootList/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/filecoin-signing-tools/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/filecoin-verifier-tools/VerifyAPI.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/filecoin-verifier-tools/hamt.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/filecoin-verifier-tools/methods.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/functions/generateSignMessage.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/functions/handleErrors.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/functions/verifyApi.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hooks/useLedgerWallet.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types.d.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/Auth.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/ConfigLotusNode.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/CreateVerifyApi.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/DataCap.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/Signature.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/SubmitRemoveDataCap.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/TransactionRaw.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/WalletLedger.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/filecoin-verifier-tools/methods.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/filecoin-verifier-tools/methods.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/components/Context/ContextTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/components/Context/ContextTypes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/components/Context/DeviceContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/components/Context/DeviceContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/components/Layout/SelectAccount.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/components/Layout/SelectAccount.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/hooks/useLedgerWallet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/hooks/useLedgerWallet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/vite.config.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="5" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2dwwygtKuIFgv6pJoCEETXz1O1R" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "main",
+    "js.ns.project": "true",
+    "js.ns.project.flavor": "TypeScript",
+    "last_opened_file_path": "/Users/tomaszplocic/code/filplus-dr-bot/new-frontend/src",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
+    "ts.external.directory.path": "/Users/tomaszplocic/code/filplus-dr-bot/new-frontend/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="ReactDesignerToolWindowState">
+    <option name="myId2Visible">
+      <map>
+        <entry key="com.intellij.reactbuddy.reactComponents" value="false" />
+        <entry key="com.intellij.reactbuddy.reactInspector" value="false" />
+      </map>
+    </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="cbc6d814-3341-4c7d-a292-446004657ddf" name="Changes" comment="" />
+      <created>1691096153104</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1691096153104</updated>
+      <workItem from="1710932706799" duration="388000" />
+      <workItem from="1710933099352" duration="9573000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

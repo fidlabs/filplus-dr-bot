@@ -1,0 +1,83 @@
+{
+  "name": "new-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@filecoin-shipyard/lotus-client-provider-browser": "^1.1.1",
+    "@filecoin-shipyard/lotus-client-provider-nodejs": "^1.1.1",
+    "@filecoin-shipyard/lotus-client-rpc": "^1.2.0",
+    "@filecoin-shipyard/lotus-client-schema": "^4.2.0",
+    "@glif/filecoin-address": "1.1.0",
+    "@ledgerhq/hw-transport-webusb": "^6.28.4",
+    "@mui/icons-material": "^5.15.13",
+    "@mui/material": "^5.15.12",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@zondax/filecoin-signing-tools": "^2.4.3",
+    "@zondax/ledger-filecoin": "^0.13.0",
+    "assert": "^2.1.0",
+    "bip39": "^3.0.2",
+    "bluebird": "^3.7.2",
+    "bn.js": "^5.2.1",
+    "cbor": "^9.0.2",
+    "dotenv": "^16.4.5",
+    "esbuild-plugin-polyfill-node": "^0.3.0",
+    "js-sha256": "^0.11.0",
+    "node-polyfill-webpack-plugin": "^3.0.0",
+    "path": "^0.12.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "4.0.3",
+    "stream": "^0.0.2",
+    "stream-browserify": "^3.0.0",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4",
+    "webpack": "^5.90.3"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/preset-env": "^7.24.3",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/bluebird": "^3.5.42",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.91",
+    "@types/react": "^18.2.67",
+    "@types/react-dom": "^18.2.22",
+    "babel-loader": "^9.1.3",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "buffer": "^6.0.3",
+    "node-stdlib-browser": "^1.2.0",
+    "ts-loader": "^9.5.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "rm -rf ./build && react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
