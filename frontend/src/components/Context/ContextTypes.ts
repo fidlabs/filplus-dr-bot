@@ -1,5 +1,4 @@
 import {ReactNode} from 'react';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import FilecoinApp from '@zondax/ledger-filecoin';
 
 export type DeviceContextType = {
