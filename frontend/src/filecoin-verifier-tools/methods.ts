@@ -1,6 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck
-import * as signer from '@zondax/filecoin-signing-tools/js';
 import cbor from 'cbor';
 import * as hamt from './hamt';
 import blake from 'blakejs';
@@ -8,9 +7,9 @@ import * as address from '@glif/filecoin-address';
 import {CID} from 'multiformats/cid';
 import {identity} from 'multiformats/hashes/identity';
 import * as rawFormat from 'multiformats/codecs/raw';
-import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
+import {transactionSerialize} from '@zondax/filecoin-signing-tools';
 import {LotusMessage} from '../types/TransactionRaw';
-import {generateSignedMessage} from '../src/functions/generateSignMessage';
+import {generateSignedMessage} from '../functions/generateSignMessage';
 
 function cborEncode(...obj) {
 	const enc = new cbor.Encoder();
@@ -30,7 +29,7 @@ function make(testnet) {
 		return res;
 	}
 
-	const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
+	const lotusNodeCode = process.env.FILECOIN_COIN_TYPE;
 	async function signTx(client, indexAccount, walletContext, tx, address) {
 		await client.chainHead();
 		const nonce = await client.mpoolGetNonce(address);
@@ -122,48 +121,6 @@ function make(testnet) {
 	const VERIFREG = testnet ? 't06' : 'f06';
 	const INIT_ACTOR = testnet ? 't01' : 'f01';
 	const ROOTKEY = testnet ? 't080' : 'f080';
-
-	function encodeAddVerifier(verified, cap) {
-		return {
-			to: VERIFREG,
-			method: 2,
-			params: cborEncode([signer.addressAsBytes(verified), encodeBig(cap)]),
-			value: 0n,
-		};
-	}
-
-	function encodeAddVerifiedClient(verified, cap) {
-		return {
-			to: VERIFREG,
-			method: 4,
-			params: cborEncode([signer.addressAsBytes(verified), encodeBig(cap)]),
-			value: 0n,
-		};
-	}
-
-	function encodePropose(msig, msg) {
-		return {
-			to: msig,
-			method: 2,
-			params: cborEncode([
-				signer.addressAsBytes(msg.to),
-				encodeBig(msg.value || 0),
-				msg.method,
-				msg.params,
-			]),
-			value: 0n,
-		};
-	}
-
-	function encodeProposalHashdata(from, msg) {
-		return cborEncode([
-			signer.addressAsBytes(from),
-			signer.addressAsBytes(msg.to),
-			encodeBig(msg.value || 0),
-			msg.method,
-			msg.params,
-		]);
-	}
 
 	function encodeApprove(msig, txid, from, msg) {
 		const hashData = encodeProposalHashdata(from, msg);
@@ -584,9 +541,6 @@ function make(testnet) {
 	return {
 		encodeSend,
 		encodeApprove,
-		encodePropose,
-		encodeAddVerifier,
-		encodeAddVerifiedClient,
 		sendTx,
 		signTx,
 		decode,

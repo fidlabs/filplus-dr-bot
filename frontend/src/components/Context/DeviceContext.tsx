@@ -1,4 +1,4 @@
-import {createContext, useContext, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import FilecoinApp from '@zondax/ledger-filecoin';
 import {mapSeries} from 'bluebird';
@@ -17,18 +17,18 @@ const DeviceContext = createContext<DeviceContextType>({
 });
 const DeviceProvider = ({children}: ReactChildren) => {
 	const {changeIsLoadingState} = useContext(LoadingContext);
-	const [ledgerApp, setLedgerApp] = useState<FilecoinApp | null>(null);
+	const [ledgerApp, setLedgerApp] = useState<any>(null);
 	const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 	const [indexAccount, setIndexAccount] = useState<number>(0);
 	const [accounts, setAccounts] = useState<string[] | null>(null);
-	const getAccounts = async (ledgerApp: FilecoinApp) => {
+	const getAccounts = async (ledgerApp: any) => {
 		const paths = [];
 		for (
 			let i = 0;
-			i < Number(import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS);
+			i < Number(process.env.NUMBER_OF_WALLET_ACCOUNTS);
 			i += 1
 		) {
-			paths.push(`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${i}`);
+			paths.push(`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${i}`);
 		}
 		const accountsPromises = await mapSeries(paths, async (path: string) => {
 			const returnLoad = await ledgerApp.getAddressAndPubKey(path);

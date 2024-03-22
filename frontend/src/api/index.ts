@@ -1,7 +1,7 @@
 import {DataCap} from '../types/DataCap';
 import {fetchWithErrorHandling} from './errorHandler';
 
-const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+const apiUrl = process.env.API_URL ?? 'http://localhost:3000/api';
 
 const defaultConfigPostData = (body: object) => ({
 	method: 'POST',

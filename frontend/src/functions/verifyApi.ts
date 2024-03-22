@@ -1,8 +1,8 @@
-import {VerifyAPI} from '../../filecoin-verifier-tools/VerifyAPI';
+import {VerifyAPI} from '../filecoin-verifier-tools/VerifyAPI';
 import { Sign } from '../types/CreateVerifyApi'
 
-const apiToken = import.meta.env.VITE_VERIFY_API_TOKEN
-const verifyApiUrl = import.meta.env.VITE_VERIFY_API_URL
+const apiToken = process.env.VERIFY_API_TOKEN
+const verifyApiUrl = process.env.VERIFY_API_URL
 
 export const createVerifyAPI = (
 	sign: Sign,
