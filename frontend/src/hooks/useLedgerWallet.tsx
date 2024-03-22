@@ -1,7 +1,9 @@
 import {useContext} from 'react';
 import {mapSeries} from 'bluebird';
-import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
-import {LotusMessage} from '../types/TransactionRaw';
+import {transactionSerialize} from '@zondax/filecoin-signing-tools';
+import {
+	LotusMessage,
+} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
@@ -10,8 +12,8 @@ import {LoadingContext} from '../components/Context/LoaderContext';
 import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
 import {handleErrors} from '../functions/handleErrors';
 
-const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
-const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
+const numberOfWalletAccounts = process.env.NUMBER_OF_WALLET_ACCOUNTS;
+const lotusNodeCode = process.env.FILECOIN_COIN_TYPE;
 
 const useLedgerWallet = () => {
 	const {ledgerApp, indexAccount, currentAccount} = useContext(DeviceContext);
@@ -23,7 +25,7 @@ const useLedgerWallet = () => {
 			paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
 		}
 
-		const accounts = await mapSeries(paths, async (path) => {
+		const accounts = await mapSeries(paths, async (path: string) => {
 			const returnLoad = await ledgerApp.getAddressAndPubKey(path);
 			const {addrString} = handleErrors(returnLoad);
 			return addrString;
@@ -50,7 +52,7 @@ const useLedgerWallet = () => {
 		//await this.ledgerApp.sign(`m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`, Buffer.from(serializedMessage, 'hex'))
 		const signedMessage = handleErrors(
 			await ledgerApp.sign(
-				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount ?? '0'}`,
+				`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${indexAccount ?? "0"}`,
 				Buffer.from(serializedMessage, 'hex'),
 			),
 		);
@@ -81,7 +83,7 @@ const useLedgerWallet = () => {
 					paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
 				}
 
-				const accounts = await mapSeries(paths, async (path) => {
+				const accounts = await mapSeries(paths, async (path: string) => {
 					const returnLoad = await ledgerApp.getAddressAndPubKey(path);
 					const {addrString} = handleErrors(returnLoad);
 					return addrString;

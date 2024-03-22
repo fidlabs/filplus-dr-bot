@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {DataCap} from '../../types/DataCap';
 import {getPendingIssues} from '../../api';
 import useLedgerWallet from '../../hooks/useLedgerWallet';

@@ -5,7 +5,6 @@ import {BrowserProvider} from '@filecoin-shipyard/lotus-client-provider-browser'
 import {methods} from './methods';
 import {mainnet} from '@filecoin-shipyard/lotus-client-schema';
 import {decode} from 'cbor';
-import FilecoinApp from '@zondax/ledger-filecoin';
 
 const SIGNATURE_DOMAIN_SEPARATION_REMOVE_DATACAP = 'fil_removedatacap:';
 
@@ -132,7 +131,7 @@ export class VerifyAPI {
 		verifier2: string,
 		signature2: string,
 		indexAccount: number,
-		wallet: FilecoinApp,
+		wallet: any,
 		address,
 		{gas} = {gas: 0}
 	) {

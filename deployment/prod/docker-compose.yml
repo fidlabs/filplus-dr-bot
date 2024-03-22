@@ -39,15 +39,12 @@ services:
     command: npm run server
 
   frontend:
-    image: ghcr.io/fidlabs/filplus-dr-bot-frontend:0.1.0
+    image: ghcr.io/fidlabs/filplus-dr-bot-frontend:1.0.0
     restart: always
-    env_file:
-      - frontend.env
     environment:
       - VIRTUAL_HOST=${DOMAIN}
       - LETSENCRYPT_HOST=${DOMAIN}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
-      - VITE_API_URL=https://${DOMAIN}/api/
       - VIRTUAL_PATH=/
 
   nginx-proxy:

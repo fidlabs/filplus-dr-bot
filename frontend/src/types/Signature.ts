@@ -1,4 +1,4 @@
 export type Signature = {
 	Data: string;
-	Type: string;
+	Type: number;
 };
