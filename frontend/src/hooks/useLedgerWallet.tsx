@@ -9,13 +9,16 @@ import {addRootKeySignatures} from '../api';
 import {LoadingContext} from '../components/Context/LoaderContext';
 import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
 import {handleErrors} from '../functions/handleErrors';
+import { PopupContext } from '../components/Context/PopupContext';
+import ErrorLoadingLeadger from '../components/Errors/ErrorLoadingLeadger';
 
 const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
 const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
 
 const useLedgerWallet = () => {
+	const {showPopup} = useContext(PopupContext)
 	const {ledgerApp, indexAccount, currentAccount} = useContext(DeviceContext);
-	const {setisLoadingTrue, setisLoadingFalse} = useContext(LoadingContext);
+	const {setisLoadingTrue, setisLoadingFalse, setLoaderText} = useContext(LoadingContext);
 	const getAccounts = async (nStart = 0) => {
 		const paths = [];
 
@@ -71,8 +74,9 @@ const useLedgerWallet = () => {
 		} = dataToSignRootKey;
 		try {
 			setisLoadingTrue();
+			setLoaderText('Signing transactions');
 			const verifyAPI = createVerifyAPI(sign, getAccounts);
-
+			
 			ledgerApp.getAccounts = async () => {
 				const paths = [];
 
@@ -90,6 +94,7 @@ const useLedgerWallet = () => {
 			const client = await verifyAPI.actorAddress(clientAddress);
 
 			if (!msigTxId) {
+				setLoaderText('Please sign transaction by leadger')
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
 					allocation,
@@ -101,6 +106,7 @@ const useLedgerWallet = () => {
 					ledgerApp,
 					currentAccount,
 				);
+				setLoaderText('Checking transaction state')
 				const receipt = await verifyAPI.stateWaitMessage(txCid);
 				const msigTxId = receipt.ReturnDec.TxnID;
 				await addRootKeySignatures({
@@ -126,6 +132,7 @@ const useLedgerWallet = () => {
 						...removeDatacapRequest,
 					},
 				};
+				setLoaderText('Please sign transaction by leadger')
 				const approveId = await verifyAPI.approvePending(
 					'f080',
 					msigTx,
@@ -133,6 +140,7 @@ const useLedgerWallet = () => {
 					ledgerApp,
 					currentAccount,
 				);
+				setLoaderText('Checking transaction state')
 				const responseData = await verifyAPI.stateWaitMessage(approveId);
 
 				if (
@@ -149,6 +157,13 @@ const useLedgerWallet = () => {
 			}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (e: any) {
+			if(e.code === 21781){
+				showPopup(<ErrorLoadingLeadger/>, 'Error loading data from Ledger device')
+
+			} else {
+				showPopup(<span>Problem with signing transaction: {e.stack}</span> ,'Error signing transaction')
+			}
+
 			console.error('error', e.stack);
 		} finally {
 			setisLoadingFalse();

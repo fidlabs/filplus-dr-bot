@@ -5,7 +5,7 @@ import {mapSeries} from 'bluebird';
 import {handleErrors} from '../../functions/handleErrors';
 import {DeviceContextType, ReactChildren} from './ContextTypes';
 import {LoadingContext} from './LoaderContext';
-import { PopupContext } from './PopupContext';
+import {PopupContext} from './PopupContext';
 import ErrorLoadingLeadger from '../Errors/ErrorLoadingLeadger';
 
 const DeviceContext = createContext<DeviceContextType>({
@@ -18,13 +18,15 @@ const DeviceContext = createContext<DeviceContextType>({
 	changeAccount: () => {},
 });
 const DeviceProvider = ({children}: ReactChildren) => {
-	const { showPopup } = useContext(PopupContext);
-	const {changeIsLoadingState} = useContext(LoadingContext);
+	const {showPopup} = useContext(PopupContext);
+	const {setisLoadingFalse, setisLoadingTrue, setLoaderText} =
+		useContext(LoadingContext);
 	const [ledgerApp, setLedgerApp] = useState<FilecoinApp | null>(null);
 	const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 	const [indexAccount, setIndexAccount] = useState<number>(0);
 	const [accounts, setAccounts] = useState<string[] | null>(null);
 	const getAccounts = async (ledgerApp: FilecoinApp) => {
+
 		const paths = [];
 		for (
 			let i = 0;
@@ -39,24 +41,29 @@ const DeviceProvider = ({children}: ReactChildren) => {
 			return addrString;
 		});
 		const accounts = await Promise.all(accountsPromises);
+
 		return accounts;
 	};
 
 	const loadLedgerData = async () => {
-		changeIsLoadingState();
+		setisLoadingTrue();
 		try {
+			setLoaderText('Loading ledger device');
 			const transport = await TransportWebUSB.create();
 			const app = new FilecoinApp(transport);
 			setLedgerApp(app);
-
+			setLoaderText('Loading accounts');
 			const accounts = await getAccounts(app);
 			setAccounts(accounts);
 			setCurrentAccount(accounts[indexAccount]);
 		} catch (error) {
-			showPopup(<ErrorLoadingLeadger/>, 'Error loading data from Ledger device')
+			showPopup(
+				<ErrorLoadingLeadger />,
+				'Error loading data from Ledger device',
+			);
 			console.error('Error loading data from Ledger device:', error);
 		}
-		changeIsLoadingState();
+		setisLoadingFalse();
 	};
 
 	const changeAccount = (account: string, index: number) => {
