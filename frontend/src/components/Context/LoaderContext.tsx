@@ -1,4 +1,4 @@
-import {createContext, useMemo, useState} from 'react';
+import React, {createContext, useState, useMemo} from 'react';
 import {LoadingContextTypes, ReactChildren} from './ContextTypes';
 
 const LoadingContext = createContext<LoadingContextTypes>({

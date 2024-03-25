@@ -26,13 +26,16 @@ apiRouter.get('/pending-issues', async (req: Request, res) => {
 apiRouter.post('/add-root-key-signature', async (req: Request, res) => {
 	errorHandler(async () => {
 		const body = req.body as {
+			txCid: string;
 			clientAddress: string;
-			txFrom?: string;
-			msigTxId: string;
-			issueNumber: string;
-			rootKeyAddress2?: string;
 		};
-		await postRootKeySignatures(body, res);
+		try {
+			await postRootKeySignatures(body);
+		} catch(e: any) {
+			console.warn(e);
+			res.status(400).json({error: e?.message});
+			return;
+		}
 		res.json({message: 'Signature root key added successfully'});
 	}, res);
 });

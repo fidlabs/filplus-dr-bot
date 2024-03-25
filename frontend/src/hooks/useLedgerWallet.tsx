@@ -1,7 +1,9 @@
 import {useContext} from 'react';
 import {mapSeries} from 'bluebird';
-import {transactionSerialize} from '@zondax/filecoin-signing-tools/js';
-import {LotusMessage} from '../types/TransactionRaw';
+import {transactionSerialize} from '@zondax/filecoin-signing-tools';
+import {
+	LotusMessage,
+} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
@@ -12,8 +14,8 @@ import {handleErrors} from '../functions/handleErrors';
 import { PopupContext } from '../components/Context/PopupContext';
 import ErrorLoadingLeadger from '../components/Errors/ErrorLoadingLeadger';
 
-const numberOfWalletAccounts = import.meta.env.VITE_NUMBER_OF_WALLET_ACCOUNTS;
-const lotusNodeCode = import.meta.env.VITE_LOTUS_NODE_CODE;
+const numberOfWalletAccounts = process.env.NUMBER_OF_WALLET_ACCOUNTS || '20';
+const lotusNodeCode = process.env.FILECOIN_COIN_TYPE;
 
 const useLedgerWallet = () => {
 	const {showPopup} = useContext(PopupContext)
@@ -26,7 +28,7 @@ const useLedgerWallet = () => {
 			paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
 		}
 
-		const accounts = await mapSeries(paths, async (path) => {
+		const accounts = await mapSeries(paths, async (path: string) => {
 			const returnLoad = await ledgerApp.getAddressAndPubKey(path);
 			const {addrString} = handleErrors(returnLoad);
 			return addrString;
@@ -53,12 +55,14 @@ const useLedgerWallet = () => {
 		//await this.ledgerApp.sign(`m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`, Buffer.from(serializedMessage, 'hex'))
 		const signedMessage = handleErrors(
 			await ledgerApp.sign(
-				`m/44'/${import.meta.env.VITE_LOTUS_NODE_CODE}'/0'/0/${indexAccount ?? '0'}`,
+				`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${indexAccount ?? "0"}`,
 				Buffer.from(serializedMessage, 'hex'),
 			),
 		);
 		return await generateSignedMessage(filecoinMessage, signedMessage);
 	};
+
+	const verifyAPI = createVerifyAPI(sign, getAccounts);
 
 	const submitRemoveDataCap = async (dataToSignRootKey: SubmitRemoveData) => {
 		const {
@@ -84,7 +88,7 @@ const useLedgerWallet = () => {
 					paths.push(`m/44'/${lotusNodeCode}'/0'/0/${i}`);
 				}
 
-				const accounts = await mapSeries(paths, async (path) => {
+				const accounts = await mapSeries(paths, async (path: string) => {
 					const returnLoad = await ledgerApp.getAddressAndPubKey(path);
 					const {addrString} = handleErrors(returnLoad);
 					return addrString;
@@ -107,13 +111,10 @@ const useLedgerWallet = () => {
 					currentAccount,
 				);
 				setLoaderText('Checking transaction state')
-				const receipt = await verifyAPI.stateWaitMessage(txCid);
-				const msigTxId = receipt.ReturnDec.TxnID;
+				await verifyAPI.stateWaitMessage(txCid); // wait for tx to get confirmed
 				await addRootKeySignatures({
-					issueNumber: issue,
-					msigTxId,
+					txCid,
 					clientAddress,
-					txFrom: currentAccount,
 				});
 			} else {
 				const removeDatacapRequest = verifyAPI.encodeRemoveDataCapTx(
@@ -149,9 +150,7 @@ const useLedgerWallet = () => {
 				) {
 					await addRootKeySignatures({
 						clientAddress,
-						issueNumber: issue,
-						msigTxId,
-						rootKeyAddress2: currentAccount,
+						txCid: approveId,
 					});
 				}
 			}
@@ -170,7 +169,13 @@ const useLedgerWallet = () => {
 		}
 	};
 
+	const actorAddress = async (address: string) => {
+		const id = await verifyAPI.actorAddress(address);
+        return 'f' + id.substring(1);
+	}
+
 	return {
+		actorAddress,
 		getAccounts,
 		sign,
 		submitRemoveDataCap,

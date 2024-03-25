@@ -1,6 +1,7 @@
 import { decode } from '@ipld/dag-cbor';
 import { parseAddress } from '@zondax/filecoin-signing-tools/js';
 import { HttpJsonRpcConnector, LotusClient } from 'filecoin.js';
+import { Message, MsgLookup } from 'filecoin.js/builds/dist/providers/Types.js';
 
 function isEqualByteArray(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length != b.length) return false;
@@ -21,7 +22,13 @@ export class LotusApi {
     }
 
     async addressId(address: string): Promise<string> {
-        return await this.client.state.lookupId(address);
+        const id = await this.client.state.lookupId(address);
+        return 'f' + id.substring(1);
+    }
+
+    async address(id: string): Promise<string> {
+        const addr = await this.client.state.accountKey(id);
+        return 'f' + addr.substring(1);
     }
 
     async getProposalId(verifierAddress: string, clientAddress: string): Promise<number> {
@@ -31,10 +38,11 @@ export class LotusApi {
         const state = await this.client.state.readState('f06');
         const idsCid: { "/": string } = state.State.RemoveDataCapProposalIDs;
         const rawIds = await this.client.chain.readObj(idsCid);
-        const decoded: any = decode(Buffer.from(rawIds, 'base64'));
-        const matchedEntry = decoded[1].find((entry: any) => isEqualByteArray(entry[0][0], key));
+        const decoded: [any, Array<Array<[Uint8Array, [number]]>>] = decode(Buffer.from(rawIds, 'base64'));
+        const allEntries = decoded[1].flatMap((entry) => entry);
+        const matchedEntry = allEntries.find(([entry_key]) => isEqualByteArray(entry_key, key))
         if (!matchedEntry) return 0;
-        return matchedEntry[0][1][0];
+        return matchedEntry[1][0];
     }
 
     async getVerifiedClientStatus(clientAddress: string): Promise<bigint> {
@@ -45,5 +53,13 @@ export class LotusApi {
     async getVerifierStatus(address: string): Promise<bigint | null> {
         const status = await this.client.state.verifierStatus(address)
         return status !== null ? BigInt(status) : null;
+    }
+
+    async getMsg(cid: string): Promise<Message> {
+        return this.client.chain.getMessage({"/": cid});
+    }
+
+    async waitMsg(cid: string): Promise<MsgLookup> {
+        return this.client.state.waitMsg({ "/": cid }, 1);
     }
 }

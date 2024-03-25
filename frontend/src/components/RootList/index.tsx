@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {DataCap} from '../../types/DataCap';
 import {getPendingIssues} from '../../api';
 import useLedgerWallet from '../../hooks/useLedgerWallet';
@@ -25,20 +25,32 @@ const headers = [
 
 const RootList = () => {
 	const [pendingIssues, setPendingIssues] = useState<DataCap[]>([]);
-	const {submitRemoveDataCap} = useLedgerWallet();
 	const {currentAccount} = useContext(DeviceContext);
+	const {submitRemoveDataCap, actorAddress} = useLedgerWallet();
+	const [currentId, setCurrentId] = useState<string | null>(null);
 
 	useEffect(() => {
 		getNotaryList();
 	}, []);
+
+	useEffect(() => {
+		setCurrentId(null);
+		(async () => {
+			if(currentAccount)
+				setCurrentId(await actorAddress(currentAccount));
+		})()
+	}, [currentAccount]);
+
 	const getNotaryList = async () => {
 		const issues = await getPendingIssues();
 		setPendingIssues(issues);
 	};
+
 	const onSignRemoveDataCap = async (submitRemoveData: SubmitRemoveData) => {
 		await submitRemoveDataCap(submitRemoveData);
 		await getNotaryList();
 	};
+
 	if (!pendingIssues) {
 		return <div>Loading...</div>;
 	}
@@ -89,7 +101,7 @@ const RootList = () => {
 
             if (stale !== 'true') return null;
 
-            const isAlreadySignByUser = txFrom === currentAccount;
+            const isAlreadySignByUser = txFrom === currentId;
             return (
               <TableRow key={index}>
                 <TableCell align="center">{clientName}</TableCell>
