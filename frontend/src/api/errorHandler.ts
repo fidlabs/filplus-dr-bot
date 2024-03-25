@@ -2,7 +2,6 @@ export const fetchWithErrorHandling = async <T>(url: string, options?: RequestIn
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      console.log(response)
       throw new Error('Network response was not ok');
     }
     return response.json();
