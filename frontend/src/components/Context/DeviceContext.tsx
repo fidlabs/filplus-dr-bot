@@ -6,7 +6,9 @@ import {handleErrors} from '../../functions/handleErrors';
 import {DeviceContextType, ReactChildren} from './ContextTypes';
 import {LoadingContext} from './LoaderContext';
 import {PopupContext} from './PopupContext';
-import ErrorLoadingLeadger from '../Errors/ErrorLoadingLeadger';
+import ErrorLoadingLeadger from '../Errors/ErrorLoadingLedger';
+import {createVerifyAPI} from '../../functions/verifyApi';
+import useLedgerWallet from '../../hooks/useLedgerWallet';
 
 const DeviceContext = createContext<DeviceContextType>({
 	ledgerApp: null,
@@ -21,17 +23,20 @@ const DeviceProvider = ({children}: ReactChildren) => {
 	const {showPopup} = useContext(PopupContext);
 	const {setisLoadingFalse, setisLoadingTrue, setLoaderText} =
 		useContext(LoadingContext);
+	const {getAccounts: getAccountsWallet, sign} = useLedgerWallet();
 	const [ledgerApp, setLedgerApp] = useState<any>(null);
 	const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 	const [indexAccount, setIndexAccount] = useState<number>(0);
 	const [accounts, setAccounts] = useState<string[] | null>(null);
 	const getAccounts = async (ledgerApp: any) => {
+		const verifyAPI = createVerifyAPI(sign, getAccountsWallet);
+		const rootkeys = await verifyAPI.listRootkeys();
+		const rootKeysId = await Promise.all(
+			rootkeys.map(async (item: string) => verifyAPI.actorKey(item)),
+		);
+
 		const paths = [];
-		for (
-			let i = 0;
-			i < Number(process.env.NUMBER_OF_WALLET_ACCOUNTS);
-			i += 1
-		) {
+		for (let i = 0; i < Number(process.env.NUMBER_OF_WALLET_ACCOUNTS); i += 1) {
 			paths.push(`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${i}`);
 		}
 		const accountsPromises = await mapSeries(paths, async (path: string) => {
@@ -41,7 +46,12 @@ const DeviceProvider = ({children}: ReactChildren) => {
 		});
 		const accounts = await Promise.all(accountsPromises);
 
-		return accounts;
+		const finalFilteredAccounts = accounts.filter((address) => {
+			const sanitizedAddress = address.substring(1); // Remove the first character ('t' or 'f')
+			return rootKeysId.some((rootKey: string) => rootKey.substring(1) === sanitizedAddress);
+	});
+
+		return finalFilteredAccounts;
 	};
 
 	const loadLedgerData = async () => {
