@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import Layout from './components/Layout';
-import {DeviceProvider} from './components/Context/DeviceContext.tsx';
-import {LoadingProvider} from './components/Context/LoaderContext.tsx';
-import Loader from './components/Loader/index.tsx';
-import {PopupProvider} from './components/Context/PopupContext.tsx';
+import {DeviceProvider} from './components/Context/DeviceContext';
+import {LoadingProvider} from './components/Context/LoaderContext';
+import Loader from './components/Loader';
+import {PopupProvider} from './components/Context/PopupContext';
 
 document.body.innerHTML = '<div id="root"></div>';
 

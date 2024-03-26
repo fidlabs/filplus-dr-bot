@@ -96,7 +96,7 @@ const useLedgerWallet = () => {
 			const client = await verifyAPI.actorAddress(clientAddress);
 
 			if (!msigTxId) {
-				setLoaderText('Please approve the transaction on leadger');
+				setLoaderText('Please approve the transaction on Ledger');
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
 					allocation,
