@@ -6,9 +6,9 @@ import {handleErrors} from '../../functions/handleErrors';
 import {DeviceContextType, ReactChildren} from './ContextTypes';
 import {LoadingContext} from './LoaderContext';
 import {PopupContext} from './PopupContext';
-import ErrorLoadingLeadger from '../Errors/ErrorLoadingLedger';
 import {createVerifyAPI} from '../../functions/verifyApi';
 import useLedgerWallet from '../../hooks/useLedgerWallet';
+import ErrorLoadingLedger from '../Errors/ErrorLoadingLedger';
 
 const DeviceContext = createContext<DeviceContextType>({
 	ledgerApp: null,
@@ -67,7 +67,7 @@ const DeviceProvider = ({children}: ReactChildren) => {
 			setCurrentAccount(accounts[indexAccount]);
 		} catch (error) {
 			showPopup(
-				<ErrorLoadingLeadger />,
+				<ErrorLoadingLedger />,
 				'Error loading data from Ledger device',
 			);
 			console.error('Error loading data from Ledger device:', error);
