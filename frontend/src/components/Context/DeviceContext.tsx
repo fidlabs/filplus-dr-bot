@@ -48,9 +48,19 @@ const DeviceProvider = ({children}: ReactChildren) => {
 
 		const finalFilteredAccounts = accounts.filter((address) => {
 			const sanitizedAddress = address.substring(1); // Remove the first character ('t' or 'f')
-			return rootKeysId.some((rootKey: string) => rootKey.substring(1) === sanitizedAddress);
-	});
-
+			return rootKeysId.some(
+				(rootKey: string) => rootKey.substring(1) === sanitizedAddress,
+			);
+		});
+		if (finalFilteredAccounts.length < 1) {
+			showPopup(
+				<div>
+					Unfortunately, there is no address associated with your Ledger device
+					that has root key permissions.
+				</div>,
+				'The root key address could not be found.',
+			);
+		}
 		return finalFilteredAccounts;
 	};
 
