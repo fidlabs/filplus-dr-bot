@@ -2,11 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import Layout from './components/Layout/Layout.js';
-import {DeviceProvider} from './components/Context/DeviceContext.js';
-import {LoadingProvider} from './components/Context/LoaderContext.js';
-import Loader from './components/Loader/index.js';
-import {PopupProvider} from './components/Context/PopupContext.js';
+import Layout from './components/Layout';
+import {DeviceProvider} from './components/Context/DeviceContext.tsx';
+import {LoadingProvider} from './components/Context/LoaderContext.tsx';
+import Loader from './components/Loader/index.tsx';
+import {PopupProvider} from './components/Context/PopupContext.tsx';
 
 document.body.innerHTML = '<div id="root"></div>';
 

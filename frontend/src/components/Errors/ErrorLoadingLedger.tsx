@@ -1,8 +1,9 @@
 import { Typography, Link, Box, List, ListItem, ListItemText } from '@mui/material';
+import React from 'react';
 
 const link = "https://support.ledger.com/hc/en-us/articles/115005165269-Fix-USB-connection-issues-with-Ledger-Live?support=true"
 
-const ErrorLoadingLeadger = () => {
+const ErrorLoadingLedger = () => {
   return (
     <Box textAlign="center" p={3}>
       <Typography variant="h5" gutterBottom>
@@ -29,4 +30,4 @@ const ErrorLoadingLeadger = () => {
   );
 };
 
-export default ErrorLoadingLeadger;
+export default ErrorLoadingLedger;

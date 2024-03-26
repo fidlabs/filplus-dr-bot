@@ -1,4 +1,4 @@
-import {createContext, useState, ReactNode, useCallback, useMemo} from 'react';
+import React, {createContext, useState, ReactNode, useCallback, useMemo} from 'react';
 import {Dialog, Box, Typography, IconButton} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
