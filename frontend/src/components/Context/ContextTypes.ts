@@ -20,4 +20,6 @@ export type LoadingContextTypes = {
 	changeIsLoadingState: () => void,
 	setisLoadingTrue: () => void,
 	setisLoadingFalse: () => void,
+	loaderText: string | null,
+	setLoaderText: (text: string) => void,
 }

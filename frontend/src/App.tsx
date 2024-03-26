@@ -7,7 +7,7 @@ import BoxWithButton from './components/BoxWithButton';
 import RootList from './components/RootList';
 
 function App() {
-	const {loadLedgerData, ledgerApp} = useContext(DeviceContext);
+	const {loadLedgerData, accounts} = useContext(DeviceContext);
 	return (
 		<div>
 			<Box
@@ -16,9 +16,9 @@ function App() {
 				alignItems="center"
 				justifyContent="center"
 				gap={4}
-				p={20}
+				p={10}
 			>
-				{!ledgerApp ? (
+				{!accounts ? (
 					<BoxWithButton onClick={loadLedgerData}>Connect wallet</BoxWithButton>
 				) : (
 					<RootList />

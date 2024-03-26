@@ -5,6 +5,8 @@ import {mapSeries} from 'bluebird';
 import {handleErrors} from '../../functions/handleErrors';
 import {DeviceContextType, ReactChildren} from './ContextTypes';
 import {LoadingContext} from './LoaderContext';
+import {PopupContext} from './PopupContext';
+import ErrorLoadingLedger from '../Errors/ErrorLoadingLedger';
 
 const DeviceContext = createContext<DeviceContextType>({
 	ledgerApp: null,
@@ -16,7 +18,9 @@ const DeviceContext = createContext<DeviceContextType>({
 	changeAccount: () => {},
 });
 const DeviceProvider = ({children}: ReactChildren) => {
-	const {changeIsLoadingState} = useContext(LoadingContext);
+	const {showPopup} = useContext(PopupContext);
+	const {setisLoadingFalse, setisLoadingTrue, setLoaderText} =
+		useContext(LoadingContext);
 	const [ledgerApp, setLedgerApp] = useState<any>(null);
 	const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 	const [indexAccount, setIndexAccount] = useState<number>(0);
@@ -36,22 +40,29 @@ const DeviceProvider = ({children}: ReactChildren) => {
 			return addrString;
 		});
 		const accounts = await Promise.all(accountsPromises);
+
 		return accounts;
 	};
 
 	const loadLedgerData = async () => {
+		setisLoadingTrue();
 		try {
+			setLoaderText('Loading ledger device');
 			const transport = await TransportWebUSB.create();
 			const app = new FilecoinApp(transport);
 			setLedgerApp(app);
-			changeIsLoadingState();
+			setLoaderText('Loading accounts');
 			const accounts = await getAccounts(app);
 			setAccounts(accounts);
-			changeIsLoadingState();
 			setCurrentAccount(accounts[indexAccount]);
 		} catch (error) {
+			showPopup(
+				<ErrorLoadingLedger />,
+				'Error loading data from Ledger device',
+			);
 			console.error('Error loading data from Ledger device:', error);
 		}
+		setisLoadingFalse();
 	};
 
 	const changeAccount = (account: string, index: number) => {

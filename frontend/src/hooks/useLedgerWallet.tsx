@@ -1,9 +1,7 @@
 import {useContext} from 'react';
 import {mapSeries} from 'bluebird';
 import {transactionSerialize} from '@zondax/filecoin-signing-tools';
-import {
-	LotusMessage,
-} from '../types/TransactionRaw';
+import {LotusMessage} from '../types/TransactionRaw';
 import {createVerifyAPI} from '../functions/verifyApi';
 import {generateSignedMessage} from '../functions/generateSignMessage';
 import {DeviceContext} from '../components/Context/DeviceContext';
@@ -11,13 +9,18 @@ import {addRootKeySignatures} from '../api';
 import {LoadingContext} from '../components/Context/LoaderContext';
 import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
 import {handleErrors} from '../functions/handleErrors';
+import {PopupContext} from '../components/Context/PopupContext';
+import ErrorLoadingLedger from '../components/Errors/ErrorLoadingLedger';
+import React from 'react';
 
-const numberOfWalletAccounts = process.env.NUMBER_OF_WALLET_ACCOUNTS;
+const numberOfWalletAccounts = process.env.NUMBER_OF_WALLET_ACCOUNTS || '20';
 const lotusNodeCode = process.env.FILECOIN_COIN_TYPE;
 
 const useLedgerWallet = () => {
+	const {showPopup} = useContext(PopupContext);
 	const {ledgerApp, indexAccount, currentAccount} = useContext(DeviceContext);
-	const {setisLoadingTrue, setisLoadingFalse} = useContext(LoadingContext);
+	const {setisLoadingTrue, setisLoadingFalse, setLoaderText} =
+		useContext(LoadingContext);
 	const getAccounts = async (nStart = 0) => {
 		const paths = [];
 
@@ -45,14 +48,12 @@ const useLedgerWallet = () => {
 			Method: 1,
 			Params: '',
 		},
-		// co z indexAccount?
 		indexAccount?: number,
 	) => {
 		const serializedMessage = transactionSerialize(filecoinMessage);
-		//await this.ledgerApp.sign(`m/44'/${this.lotusNode.code}'/0'/0/${indexAccount}`, Buffer.from(serializedMessage, 'hex'))
 		const signedMessage = handleErrors(
 			await ledgerApp.sign(
-				`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${indexAccount ?? "0"}`,
+				`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${indexAccount ?? '0'}`,
 				Buffer.from(serializedMessage, 'hex'),
 			),
 		);
@@ -75,6 +76,8 @@ const useLedgerWallet = () => {
 		} = dataToSignRootKey;
 		try {
 			setisLoadingTrue();
+			setLoaderText('Signing transactions');
+			const verifyAPI = createVerifyAPI(sign, getAccounts);
 
 			ledgerApp.getAccounts = async () => {
 				const paths = [];
@@ -93,6 +96,7 @@ const useLedgerWallet = () => {
 			const client = await verifyAPI.actorAddress(clientAddress);
 
 			if (!msigTxId) {
+				setLoaderText('Please approve the transaction on Ledger');
 				const txCid = await verifyAPI.proposeRemoveDataCap(
 					client,
 					allocation,
@@ -104,6 +108,7 @@ const useLedgerWallet = () => {
 					ledgerApp,
 					currentAccount,
 				);
+				setLoaderText('Checking transaction state');
 				await verifyAPI.stateWaitMessage(txCid); // wait for tx to get confirmed
 				await addRootKeySignatures({
 					txCid,
@@ -126,6 +131,7 @@ const useLedgerWallet = () => {
 						...removeDatacapRequest,
 					},
 				};
+				setLoaderText('Please approve the transaction on Ledger');
 				const approveId = await verifyAPI.approvePending(
 					'f080',
 					msigTx,
@@ -133,6 +139,7 @@ const useLedgerWallet = () => {
 					ledgerApp,
 					currentAccount,
 				);
+				setLoaderText('Checking transaction state');
 				const responseData = await verifyAPI.stateWaitMessage(approveId);
 
 				if (
@@ -147,6 +154,18 @@ const useLedgerWallet = () => {
 			}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (e: any) {
+			if (e.code === 21781) {
+				showPopup(
+					<ErrorLoadingLedger />,
+					'Error loading data from Ledger device',
+				);
+			} else {
+				showPopup(
+					<span>Problem with signing transaction.</span>,
+					'Error signing transaction',
+				);
+			}
+
 			console.error('error', e.stack);
 		} finally {
 			setisLoadingFalse();
@@ -155,8 +174,8 @@ const useLedgerWallet = () => {
 
 	const actorAddress = async (address: string) => {
 		const id = await verifyAPI.actorAddress(address);
-        return 'f' + id.substring(1);
-	}
+		return 'f' + id.substring(1);
+	};
 
 	return {
 		actorAddress,
