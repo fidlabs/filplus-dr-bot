@@ -5,7 +5,7 @@ import './index.css';
 import Layout from './components/Layout';
 import {DeviceProvider} from './components/Context/DeviceContext';
 import {LoadingProvider} from './components/Context/LoaderContext';
-import Loader from './components/Loader/';
+import Loader from './components/Loader';
 import {PopupProvider} from './components/Context/PopupContext';
 
 document.body.innerHTML = '<div id="root"></div>';
