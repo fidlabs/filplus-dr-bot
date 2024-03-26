@@ -10,7 +10,7 @@ import {LoadingContext} from '../components/Context/LoaderContext';
 import {SubmitRemoveData} from '../types/SubmitRemoveDataCap';
 import {handleErrors} from '../functions/handleErrors';
 import {PopupContext} from '../components/Context/PopupContext';
-import ErrorLoadingLeadger from '../components/Errors/ErrorLoadingLedger';
+import ErrorLoadingLedger from '../components/Errors/ErrorLoadingLedger';
 import React from 'react';
 
 const numberOfWalletAccounts = process.env.NUMBER_OF_WALLET_ACCOUNTS || '20';
@@ -156,7 +156,7 @@ const useLedgerWallet = () => {
 		} catch (e: any) {
 			if (e.code === 21781) {
 				showPopup(
-					<ErrorLoadingLeadger />,
+					<ErrorLoadingLedger />,
 					'Error loading data from Ledger device',
 				);
 			} else {
