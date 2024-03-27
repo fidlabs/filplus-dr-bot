@@ -16,7 +16,7 @@ const wallet = new LocalWallet(mnemonic);
 const lotusApi = new LotusApi(glifUrl, glifToken);
 
 export const triggerRemoval = async (addressRaw: string, res: Response) => {
-	let address = await lotusApi.address(await lotusApi.addressId(addressRaw));
+    let address = await lotusApi.address(await lotusApi.addressId(addressRaw));
     let allocation;
     try {
      allocation = await lotusApi.getVerifiedClientStatus(address);
@@ -29,44 +29,50 @@ export const triggerRemoval = async (addressRaw: string, res: Response) => {
 
     const sigs = await signNotaries(address, allocation);
 
-	const redisClient = await createClient({url: redisUrl}).connect();
+    const redisClient = await createClient({url: redisUrl}).connect();
     await redisClient.hSet(address, {
         stale: "true",
+        isFinished: "false",
         allocation: allocation.toString(10),
+        txFrom: "",
+        msigTxId: "",
+        issueGov: "",
+        rootKeyAddress2: "",
+        date: 0,
         ...sigs
     });
     await redisClient.sAdd(redisDatacapAddressesSet, [address]);
-	await redisClient.disconnect();
+    await redisClient.disconnect();
 
-	res.json({result: "OK"});
+    res.json({result: "OK"});
 };
 
 async function signNotaries(
-	clientAddress: string,
-	amount: bigint,
+    clientAddress: string,
+    amount: bigint,
 ): Promise<{ notary1: string, notary2: string, signature1: string, signature2: string }> {
-	const clientAddressId = await lotusApi.addressId(clientAddress);
-	const notary1 = await lotusApi.addressId(wallet.getAddress(0));
-	const proposalId1 = await lotusApi.getProposalId(notary1, clientAddressId);
-	const signature1 = wallet.signRemoveDataCapProposal(
-		0,
-		clientAddressId,
-		amount,
-		proposalId1,
-	);
-	const notary2 = await lotusApi.addressId(wallet.getAddress(1));
-	const proposalId2 = await lotusApi.getProposalId(notary2, clientAddressId);
-	const signature2 = wallet.signRemoveDataCapProposal(
-		1,
-		clientAddressId,
-		amount,
-		proposalId2,
-	);
+    const clientAddressId = await lotusApi.addressId(clientAddress);
+    const notary1 = await lotusApi.addressId(wallet.getAddress(0));
+    const proposalId1 = await lotusApi.getProposalId(notary1, clientAddressId);
+    const signature1 = wallet.signRemoveDataCapProposal(
+        0,
+        clientAddressId,
+        amount,
+        proposalId1,
+    );
+    const notary2 = await lotusApi.addressId(wallet.getAddress(1));
+    const proposalId2 = await lotusApi.getProposalId(notary2, clientAddressId);
+    const signature2 = wallet.signRemoveDataCapProposal(
+        1,
+        clientAddressId,
+        amount,
+        proposalId2,
+    );
 
-	return {
-		signature1,
-		notary1,
-		signature2,
-		notary2,
-	};
+    return {
+        signature1,
+        notary1,
+        signature2,
+        notary2,
+    };
 }

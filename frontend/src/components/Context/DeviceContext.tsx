@@ -29,12 +29,6 @@ const DeviceProvider = ({children}: ReactChildren) => {
 	const [indexAccount, setIndexAccount] = useState<number>(0);
 	const [accounts, setAccounts] = useState<string[] | null>(null);
 	const getAccounts = async (ledgerApp: any) => {
-		const verifyAPI = createVerifyAPI(sign, getAccountsWallet);
-		const rootkeys = await verifyAPI.listRootkeys();
-		const rootKeysId = await Promise.all(
-			rootkeys.map(async (item: string) => verifyAPI.actorKey(item)),
-		);
-
 		const paths = [];
 		for (let i = 0; i < Number(process.env.NUMBER_OF_WALLET_ACCOUNTS); i += 1) {
 			paths.push(`m/44'/${process.env.FILECOIN_COIN_TYPE}'/0'/0/${i}`);
@@ -46,22 +40,28 @@ const DeviceProvider = ({children}: ReactChildren) => {
 		});
 		const accounts = await Promise.all(accountsPromises);
 
-		const finalFilteredAccounts = accounts.filter((address) => {
-			const sanitizedAddress = address.substring(1); // Remove the first character ('t' or 'f')
-			return rootKeysId.some(
-				(rootKey: string) => rootKey.substring(1) === sanitizedAddress,
-			);
-		});
-		if (finalFilteredAccounts.length < 1) {
-			showPopup(
-				<div>
-					Unfortunately, there is no address associated with your Ledger device
-					that has root key permissions.
-				</div>,
-				'The root key address could not be found.',
-			);
-		}
-		return finalFilteredAccounts;
+		return accounts;
+		//const verifyAPI = createVerifyAPI(sign, getAccountsWallet);
+		//const rootkeys = await verifyAPI.listRootkeys();
+		//const rootKeysId = await Promise.all(
+		//	rootkeys.map(async (item: string) => verifyAPI.actorKey(item)),
+		//);
+		//const finalFilteredAccounts = accounts.filter((address) => {
+		//	const sanitizedAddress = address.substring(1); // Remove the first character ('t' or 'f')
+		//	return rootKeysId.some(
+		//		(rootKey: string) => rootKey.substring(1) === sanitizedAddress,
+		//	);
+		//});
+		//if (finalFilteredAccounts.length < 1) {
+		//	showPopup(
+		//		<div>
+		//			Unfortunately, there is no address associated with your Ledger device
+		//			that has root key permissions.
+		//		</div>,
+		//		'The root key address could not be found.',
+		//	);
+		//}
+		//return finalFilteredAccounts;
 	};
 
 	const loadLedgerData = async () => {
