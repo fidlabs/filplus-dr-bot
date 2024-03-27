@@ -43,6 +43,7 @@
 		"express": "^4.18.3",
 		"filecoin.js": "^0.0.5-alpha",
 		"mdast": "^3.0.0",
+		"nocache": "^4.0.0",
 		"node-fetch": "^3.3.2",
 		"node-forge": "^1.3.1",
 		"octokit": "^3.1.2",

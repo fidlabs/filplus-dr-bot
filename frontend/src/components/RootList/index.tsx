@@ -104,11 +104,11 @@ const RootList = () => {
             const isAlreadySignByUser = txFrom === currentId;
             return (
               <TableRow key={index}>
-                <TableCell align="center">{clientName}</TableCell>
+                <TableCell align="center">{clientName || "N/A (removal triggered manually)"}</TableCell>
                 <TableCell align="center">{member}</TableCell>
                 <TableCell align="center">{allocation}</TableCell>
                 <TableCell align="center">
-                  <a href={linkIssueGov}>Issue Link</a>
+                  { linkIssueGov ? <a href={linkIssueGov}>Issue Link</a> : "N/A" }
                 </TableCell>
                 <TableCell align="center">{txFrom ? '1/2' : '0/2'}</TableCell>
                 <TableCell align="center">

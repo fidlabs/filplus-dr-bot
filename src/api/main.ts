@@ -12,6 +12,7 @@ app.use(cors({
 app.use(bodyParser.json());
 
 app.use("/api", apiRouter);
+app.set("etag", false);
 
 const port = process.env.PORT ?? 3000;
 app.listen(port, () => {

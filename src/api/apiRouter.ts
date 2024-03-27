@@ -3,13 +3,15 @@ import {
 	getClientWithBothSignatures,
 	postRootKeySignatures,
 } from './serverFunctions/datacaps.js';
-import {makeStale} from './serverFunctions/makeStale.js';
+import { makeStale } from './serverFunctions/makeStale.js';
+import { triggerRemoval } from './serverFunctions/triggerRemoval.js';
+import nocache from 'nocache';
 
 export const apiRouter = express.Router();
 
-const errorHandler = (handleFunction: () => void, res: Response) => {
+const errorHandler = async (handleFunction: () => void, res: Response) => {
 	try {
-		handleFunction();
+		await handleFunction();
 	} catch (error) {
 		console.error('Error:', error);
 		res.status(500).json({error: 'Internal server error'});
@@ -37,6 +39,16 @@ apiRouter.post('/add-root-key-signature', async (req: Request, res) => {
 			return;
 		}
 		res.json({message: 'Signature root key added successfully'});
+	}, res);
+});
+
+apiRouter.get('/trigger-removal/:pass/:clientAddress', nocache(), async (req: Request, res: Response) => {
+	errorHandler(async () => {
+		if (req.params.pass != process.env.PASSWORD) {
+			res.status(403).json("Invalid credentials");
+		} else {
+			await triggerRemoval(req.params.clientAddress, res);
+		}
 	}, res);
 });
 

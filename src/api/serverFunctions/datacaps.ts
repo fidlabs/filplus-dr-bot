@@ -96,12 +96,13 @@ const handleFirstSignature = async (declaredClientAddress: string, api: LotusApi
 
 	const issueGov = await client.hGet(clientAddress, 'issueGov');
 	await client.disconnect();
-	await postIssue({
-		issueNumber: issueGov!,
-		txFrom: msg.From,
-		isLastComment: false,
-		msigTxId: msgReturn.TxnID,
-	});
+	if (issueGov)
+		await postIssue({
+			issueNumber: issueGov!,
+			txFrom: msg.From,
+			isLastComment: false,
+			msigTxId: msgReturn.TxnID,
+		});
 }
 
 const handleSecondSignature = async (clientAddress: string, msg: Message, msgReturn: any) => {
@@ -135,12 +136,13 @@ const handleSecondSignature = async (clientAddress: string, msg: Message, msgRet
 	});
 	await client.disconnect();
 
-	await postIssue({
-		issueNumber: issueGov!,
-		txFrom: msg.From,
-		isLastComment: true,
-		msigTxId: expectedMsigId,
-	});
+	if (issueGov)
+		await postIssue({
+			issueNumber: issueGov!,
+			txFrom: msg.From,
+			isLastComment: true,
+			msigTxId: expectedMsigId,
+		});
 }
 
 export const postRootKeySignatures = async (

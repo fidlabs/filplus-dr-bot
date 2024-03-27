@@ -7,7 +7,7 @@ dotenv.config();
 const appId = process.env.APP_ID ?? 'APP_ID';
 const privateKeyPath = process.env.PRIVATE_KEY_PATH ?? './YOUR_PRIVATE_KEY.pem';
 const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
-const owner = process.env.OWNER ?? 'OWNER';
+const owner = process.env.GOV_OWNER ?? 'OWNER';
 const govRepo = process.env.GOV_REPO ?? 'GOV_REPO';
 
 type Body = {
