@@ -29,6 +29,9 @@ const wallet = new LocalWallet(mnemonic);
 (async () => {
 	// eslint-disable-next-line no-constant-condition
 
+	console.log("Using verifiers:")
+	console.log("  ", wallet.getAddress(0));
+	console.log("  ", wallet.getAddress(1));
 	await verifyNotary(wallet.getAddress(0));
 	await verifyNotary(wallet.getAddress(1));
 
