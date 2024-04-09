@@ -6,7 +6,7 @@ RUN npm ci
 
 FROM node:14 AS builder
 ARG filecoin_coin_type=461
-ARG number_of_wallet_accounts=5
+ARG number_of_wallet_accounts=10
 ARG api_url=/api
 ARG verify_api_url=https://api.node.glif.io/rpc/v0
 ARG verify_api_token

@@ -43,7 +43,6 @@ services:
     image: ghcr.io/fidlabs/filplus-dr-bot-frontend:1.0.0
     restart: always
     environment:
-      - NUMBER_OF_WALLET_ACCOUNTS=10
       - VIRTUAL_HOST=${DOMAIN}
       - LETSENCRYPT_HOST=${DOMAIN}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
