@@ -24,7 +24,7 @@ services:
     restart: always
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - CORS_ORIGIN=https://${DOMAIN}
+      - CORS_ORIGIN=https://${DOMAIN},https://check.allocator.tech
       - VIRTUAL_HOST=${DOMAIN}
       - VIRTUAL_PATH=/api
       - VIRTUAL_PORT=3000
