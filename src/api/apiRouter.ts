@@ -47,7 +47,8 @@ apiRouter.get('/trigger-removal/:pass/:clientAddress', nocache(), async (req: Re
 		if (req.params.pass != process.env.PASSWORD) {
 			res.status(403).json("Invalid credentials");
 		} else {
-			await triggerRemoval(req.params.clientAddress, res);
+			let issue = req.query.issue
+			await triggerRemoval(req.params.clientAddress, issue, res);
 		}
 	}, res);
 });
