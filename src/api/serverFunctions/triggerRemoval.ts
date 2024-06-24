@@ -15,7 +15,7 @@ const mnemonic = process.env.MNEMONIC!;
 const wallet = new LocalWallet(mnemonic);
 const lotusApi = new LotusApi(glifUrl, glifToken);
 
-export const triggerRemoval = async (addressRaw: string, res: Response) => {
+export const triggerRemoval = async (addressRaw: string, issue: string, res: Response) => {
     let address = await lotusApi.address(await lotusApi.addressId(addressRaw));
     let allocation;
     try {
@@ -36,7 +36,7 @@ export const triggerRemoval = async (addressRaw: string, res: Response) => {
         allocation: allocation.toString(10),
         txFrom: "",
         msigTxId: "",
-        issueGov: "",
+        issueGov: issue,
         rootKeyAddress2: "",
         date: 0,
         ...sigs
